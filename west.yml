@@ -23,6 +23,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: babblesim
       url-base: https://github.com/BabbleSim
+    - name: flextrack
+      url-base: https://github.com/flextrack
 
   group-filter: [-babblesim, -optional]
 
@@ -117,6 +119,7 @@ manifest:
       groups:
         - babblesim
     - name: cmsis
+      remote: flextrack
       revision: 4b96cbb174678dcd3ca86e11e1f24bc5f8726da0
       path: modules/hal/cmsis
       groups:
@@ -203,6 +206,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
+      remote: flextrack
       revision: 0ac830233092247c26f5dd01a07b0a484532ea4c
       path: modules/hal/nxp
       groups:
@@ -292,14 +296,17 @@ manifest:
       revision: fb00b383072518c918e2258b0916c996f2d4eebe
       path: modules/lib/loramac-node
     - name: lvgl
+      remote: flextrack
       revision: 6decbb7f7783f6e48d4591fcb9f7810c2fb08e61
       path: modules/lib/gui/lvgl
     - name: mbedtls
+      remote: flextrack
       revision: 4952e1328529ee549d412b498ea71c54f30aa3b1
       path: modules/crypto/mbedtls
       groups:
         - crypto
     - name: mcuboot
+      remote: flextrack
       revision: a2bc982b3379d51fefda3e17a6a067342dce1a8b
       path: bootloader/mcuboot
       groups:
@@ -335,6 +342,7 @@ manifest:
       path: modules/lib/picolibc
       revision: 82d62ed1ac55b4e34a12d0390aced2dc9af13fc9
     - name: segger
+      remote: flextrack
       revision: cf56b1d9c80f81a26e2ac5727c9cf177116a4692
       path: modules/debug/segger
       groups:
@@ -358,6 +366,7 @@ manifest:
       revision: 84ef879a46d7bfd9a423fbfb502b04289861f9ea
       path: modules/lib/uoscore-uedhoc
     - name: zcbor
+      remote: flextrack
       revision: 9b07780aca6fb21f82a241ba386ad9b379809337
       path: modules/lib/zcbor
   # zephyr-keep-sorted-stop
