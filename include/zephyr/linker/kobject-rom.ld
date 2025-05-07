@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-/* Please keep in sync with cmake/linker_script/common/kobject-rom.cmake */
 
 #ifdef CONFIG_USERSPACE
 
@@ -21,11 +20,11 @@
 #ifdef KOBJECT_RODATA_ALIGN
 	. = ALIGN(KOBJECT_RODATA_ALIGN);
 
-	PLACE_SYMBOL_HERE(_kobject_rodata_area_start);
+	_kobject_rodata_area_start = .;
 
 	. = . + KOBJECT_RODATA_SZ;
 
-	PLACE_SYMBOL_HERE(_kobject_rodata_area_end);
+	_kobject_rodata_area_end = .;
 #endif
 #endif /* LINKER_ZEPHYR_PREBUILT */
 
@@ -34,13 +33,13 @@
 #ifdef KOBJECT_RODATA_ALIGN
 	. = ALIGN(KOBJECT_RODATA_ALIGN);
 
-	PLACE_SYMBOL_HERE(_kobject_rodata_area_start);
+	_kobject_rodata_area_start = .;
 #endif
 
 	*(".kobject_data.rodata*")
 
 #ifdef KOBJECT_RODATA_ALIGN
-	PLACE_SYMBOL_HERE(_kobject_rodata_area_end);
+	_kobject_rodata_area_end = .;
 	_kobject_rodata_area_used = _kobject_rodata_area_end - _kobject_rodata_area_start;
 
 	ASSERT(_kobject_rodata_area_used <= KOBJECT_RODATA_SZ,

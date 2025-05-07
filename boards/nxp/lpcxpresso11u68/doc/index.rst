@@ -42,7 +42,30 @@ More information can be found here:
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The lpcxpresso11U68 supports the following features:
+
++-----------+------------+-------------------------------------+
+| Interface | Controller | Driver/Component                    |
++===========+============+=====================================+
+| NVIC      | on-chip    | nested vector interrupt controller  |
++-----------+------------+-------------------------------------+
+| SYSTICK   | on-chip    | systick                             |
++-----------+------------+-------------------------------------+
+| IOCON     | on-chip    | pinmux                              |
++-----------+------------+-------------------------------------+
+| CLOCK     | on-chip    | clock and reset control             |
++-----------+------------+-------------------------------------+
+| GPIO      | on-chip    | gpio                                |
++-----------+------------+-------------------------------------+
+| I2C       | on-chip    | i2c master/slave controller         |
++-----------+------------+-------------------------------------+
+| UART      | on-chip    | serial port-polling;                |
+|           |            | serial port interrupt               |
++-----------+------------+-------------------------------------+
+| EEPROM    | on-chip    | eeprom                              |
++-----------+------------+-------------------------------------+
+
+Other hardware is not yet supported on Zephyr.
 
 Connections and IOs
 ===================
@@ -70,8 +93,6 @@ The IOCON controller can be used to configure the LPC11U68 pins.
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 Flashing
 ========

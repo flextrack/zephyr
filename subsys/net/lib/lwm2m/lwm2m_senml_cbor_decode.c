@@ -212,8 +212,6 @@ static bool decode_lwm2m_senml(zcbor_state_t *state, struct lwm2m_senml *result)
 {
 	zcbor_log("%s\r\n", __func__);
 
-	state->constant_state->enforce_canonical = false;
-
 	bool res =
 		(((zcbor_list_start_decode(state) &&
 		   ((zcbor_multi_decode(

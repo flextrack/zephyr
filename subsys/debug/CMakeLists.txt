@@ -10,9 +10,9 @@ zephyr_sources_ifdef(
   asan_hacks.c
   )
 
-add_subdirectory_ifdef(
+zephyr_sources_ifdef(
   CONFIG_THREAD_ANALYZER
-  thread_analyzer
+  thread_analyzer.c
   )
 
 add_subdirectory_ifdef(

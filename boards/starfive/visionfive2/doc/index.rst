@@ -9,8 +9,6 @@ multi-core 64bit RISC-V SoC.
 Programming and debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Building
 ========
 

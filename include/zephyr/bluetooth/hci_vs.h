@@ -11,10 +11,7 @@
 
 #include <stdint.h>
 
-#include <zephyr/bluetooth/addr.h>
 #include <zephyr/bluetooth/hci.h>
-#include <zephyr/bluetooth/hci_types.h>
-#include <zephyr/net_buf.h>
 
 #ifdef __cplusplus
 extern "C" {

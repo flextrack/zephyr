@@ -65,7 +65,23 @@ More information about STM32F469NI can be found here:
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The Zephyr stm32f469i_disco board configuration supports the following hardware features:
+
++-----------+------------+-------------------------------------+
+| Interface | Controller | Driver/Component                    |
++===========+============+=====================================+
+| UART      | on-chip    | serial port-polling;                |
+|           |            | serial port-interrupt               |
++-----------+------------+-------------------------------------+
+| PINMUX    | on-chip    | pinmux                              |
++-----------+------------+-------------------------------------+
+| GPIO      | on-chip    | gpio                                |
++-----------+------------+-------------------------------------+
+
+Other hardware features are not yet supported on Zephyr porting.
+
+The default configuration can be found in
+:zephyr_file:`boards/adi/sdp_k1/adi_sdp_k1_defconfig`
 
 Pin Mapping
 ===========
@@ -102,8 +118,6 @@ Default Zephyr Peripheral Mapping:
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 The ADI SDP-K1 be programmed over USB using the DAPLink firmware running on an
 embedded NXP Freescale microcontroller or a 10-pin ``DEBUG`` header connected

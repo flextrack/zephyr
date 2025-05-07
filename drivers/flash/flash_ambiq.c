@@ -11,7 +11,7 @@
 #include <zephyr/drivers/flash.h>
 #include <zephyr/logging/log.h>
 
-#include <soc.h>
+#include <am_mcu_apollo.h>
 
 LOG_MODULE_REGISTER(flash_ambiq, CONFIG_FLASH_LOG_LEVEL);
 

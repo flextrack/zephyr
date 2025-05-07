@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+zephyr_library()
+
 #Allow users to pre-specify the tool using '-DMEC172X_SPI_GEN=<path-to-tool>/toolname'
 if (NOT DEFINED MEC172X_SPI_GEN)
   set(MEC172X_SPI_GEN $ENV{MEC172X_SPI_GEN})

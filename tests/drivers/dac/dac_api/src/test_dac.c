@@ -13,7 +13,6 @@
 	defined(CONFIG_BOARD_NUCLEO_F207ZG) || \
 	defined(CONFIG_BOARD_STM32F3_DISCO) || \
 	defined(CONFIG_BOARD_NUCLEO_F429ZI) || \
-	defined(CONFIG_BOARD_NUCLEO_F439ZI) || \
 	defined(CONFIG_BOARD_NUCLEO_F746ZG) || \
 	defined(CONFIG_BOARD_NUCLEO_F767ZI) || \
 	defined(CONFIG_BOARD_NUCLEO_F722ZE) || \
@@ -49,7 +48,6 @@
 	defined(CONFIG_BOARD_FRDM_K64F) || \
 	defined(CONFIG_BOARD_FRDM_K22F) || \
 	defined(CONFIG_BOARD_FRDM_MCXN947) || \
-	defined(CONFIG_BOARD_MCX_N9XX_EVK) || \
 	defined(CONFIG_BOARD_FRDM_MCXA156) || \
 	defined(CONFIG_BOARD_SEEEDUINO_XIAO) || \
 	defined(CONFIG_BOARD_ARDUINO_MKRZERO) || \
@@ -71,7 +69,8 @@
 #define DAC_RESOLUTION		12
 #define DAC_CHANNEL_ID		0
 
-#elif defined(CONFIG_BOARD_ESP32_DEVKITC) || \
+#elif defined(CONFIG_BOARD_ESP32_DEVKITC_WROOM) || \
+	defined(CONFIG_BOARD_ESP32_DEVKITC_WROVER) || \
 	defined(CONFIG_BOARD_ESP_WROVER_KIT) || \
 	defined(CONFIG_BOARD_ESP32S2_SAOLA) || \
 	defined(CONFIG_BOARD_ESP32S2_DEVKITC) || \
@@ -111,13 +110,9 @@
 #endif
 
 static const struct dac_channel_cfg dac_ch_cfg = {
-	.channel_id = DAC_CHANNEL_ID,
-	.resolution = DAC_RESOLUTION,
-#if defined(CONFIG_DAC_BUFFER_NOT_SUPPORT)
-	.buffered = false,
-#else
-	.buffered = true,
-#endif /* CONFIG_DAC_BUFFER_NOT_SUPPORT */
+	.channel_id  = DAC_CHANNEL_ID,
+	.resolution  = DAC_RESOLUTION,
+	.buffered = true
 };
 
 const struct device *get_dac_device(void)

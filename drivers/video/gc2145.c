@@ -14,10 +14,6 @@
 #include <zephyr/drivers/gpio.h>
 
 #include <zephyr/logging/log.h>
-
-#include "video_ctrls.h"
-#include "video_device.h"
-
 LOG_MODULE_REGISTER(video_gc2145, CONFIG_VIDEO_LOG_LEVEL);
 
 #define GC2145_REG_AMODE1               0x17
@@ -33,6 +29,8 @@ LOG_MODULE_REGISTER(video_gc2145, CONFIG_VIDEO_LOG_LEVEL);
 #define GC2145_REG_SYNC_MODE_ROW_SWITCH 0x20
 #define GC2145_REG_RESET                0xFE
 #define GC2145_REG_SW_RESET             0x80
+#define GC2145_PID_VAL                  0x21
+#define GC2145_REV_VAL                  0x55
 #define GC2145_SET_P0_REGS              0x00
 #define GC2145_REG_CROP_ENABLE          0x90
 #define GC2145_CROP_SET_ENABLE          0x01
@@ -693,13 +691,7 @@ struct gc2145_config {
 #endif
 };
 
-struct gc2145_ctrls {
-	struct video_ctrl hflip;
-	struct video_ctrl vflip;
-};
-
 struct gc2145_data {
-	struct gc2145_ctrls ctrls;
 	struct video_format fmt;
 };
 
@@ -1018,23 +1010,21 @@ static uint8_t gc2145_check_connection(const struct device *dev)
 {
 	int ret;
 	const struct gc2145_config *cfg = dev->config;
-	uint8_t reg_chip_id[2];
-	uint16_t chip_id;
+	uint8_t reg_pid_val;
+	uint8_t reg_ver_val;
 
-	ret = gc2145_read_reg(&cfg->i2c, 0xf0, &reg_chip_id[0]);
+	ret = gc2145_read_reg(&cfg->i2c, 0xf0, &reg_pid_val);
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = gc2145_read_reg(&cfg->i2c, 0xf1, &reg_chip_id[1]);
+	ret = gc2145_read_reg(&cfg->i2c, 0xf1, &reg_ver_val);
 	if (ret < 0) {
 		return ret;
 	}
 
-	chip_id = reg_chip_id[0] << 8 | reg_chip_id[1];
-
-	if (chip_id != 0x2145 && chip_id != 0x2155) {
-		LOG_WRN("Unexpected GC2145 chip ID: 0x%04x", chip_id);
+	if ((reg_ver_val != GC2145_REV_VAL) || (reg_pid_val != GC2145_PID_VAL)) {
+		LOG_WRN("Unexpected GC2145 pid: 0x%x or rev: 0x%x", reg_pid_val, reg_ver_val);
 	}
 
 	return 0;
@@ -1110,15 +1100,13 @@ static int gc2145_get_caps(const struct device *dev, enum video_endpoint_id ep,
 	return 0;
 }
 
-static int gc2145_set_ctrl(const struct device *dev, uint32_t id)
+static int gc2145_set_ctrl(const struct device *dev, unsigned int cid, void *value)
 {
-	struct gc2145_data *drv_data = dev->data;
-
-	switch (id) {
+	switch (cid) {
 	case VIDEO_CID_HFLIP:
-		return gc2145_set_ctrl_hmirror(dev, drv_data->ctrls.hflip.val);
+		return gc2145_set_ctrl_hmirror(dev, (int)value);
 	case VIDEO_CID_VFLIP:
-		return gc2145_set_ctrl_vflip(dev, drv_data->ctrls.vflip.val);
+		return gc2145_set_ctrl_vflip(dev, (int)value);
 	default:
 		return -ENOTSUP;
 	}
@@ -1131,22 +1119,6 @@ static DEVICE_API(video, gc2145_driver_api) = {
 	.set_stream = gc2145_set_stream,
 	.set_ctrl = gc2145_set_ctrl,
 };
-
-static int gc2145_init_controls(const struct device *dev)
-{
-	int ret;
-	struct gc2145_data *drv_data = dev->data;
-	struct gc2145_ctrls *ctrls = &drv_data->ctrls;
-
-	ret = video_init_ctrl(&ctrls->hflip, dev, VIDEO_CID_HFLIP,
-			      (struct video_ctrl_range){.min = 0, .max = 1, .step = 1, .def = 0});
-	if (ret) {
-		return ret;
-	}
-
-	return video_init_ctrl(&ctrls->vflip, dev, VIDEO_CID_VFLIP,
-			       (struct video_ctrl_range){.min = 0, .max = 1, .step = 1, .def = 0});
-}
 
 static int gc2145_init(const struct device *dev)
 {
@@ -1194,8 +1166,7 @@ static int gc2145_init(const struct device *dev)
 		return ret;
 	}
 
-	/* Initialize controls */
-	return gc2145_init_controls(dev);
+	return 0;
 }
 
 /* Unique Instance */
@@ -1237,5 +1208,3 @@ static int gc2145_init_0(const struct device *dev)
 
 DEVICE_DT_INST_DEFINE(0, &gc2145_init_0, NULL, &gc2145_data_0, &gc2145_cfg_0, POST_KERNEL,
 		      CONFIG_VIDEO_INIT_PRIORITY, &gc2145_driver_api);
-
-VIDEO_DEVICE_DEFINE(gc2145, DEVICE_DT_INST_GET(0), NULL);

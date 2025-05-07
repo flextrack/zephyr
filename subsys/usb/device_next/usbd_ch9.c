@@ -472,11 +472,9 @@ static int sreq_get_desc_cfg(struct usbd_context *const uds_ctx,
 
 	/*
 	 * If the other-speed-configuration-descriptor is requested and the
-	 * controller (or stack) does not support high speed, respond with
-	 * an error.
+	 * controller does not support high speed, respond with an error.
 	 */
-	if (other_cfg && !(USBD_SUPPORTS_HIGH_SPEED &&
-	    (usbd_caps_speed(uds_ctx) == USBD_SPEED_HS))) {
+	if (other_cfg && usbd_caps_speed(uds_ctx) != USBD_SPEED_HS) {
 		errno = -ENOTSUP;
 		return 0;
 	}
@@ -693,8 +691,7 @@ static int sreq_get_dev_qualifier(struct usbd_context *const uds_ctx,
 	 * If the Device Qualifier descriptor is requested and the controller
 	 * does not support high speed, respond with an error.
 	 */
-	if (!USBD_SUPPORTS_HIGH_SPEED ||
-	    usbd_caps_speed(uds_ctx) != USBD_SPEED_HS) {
+	if (usbd_caps_speed(uds_ctx) != USBD_SPEED_HS) {
 		errno = -ENOTSUP;
 		return 0;
 	}

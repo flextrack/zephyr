@@ -1,7 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
-# The contents of this file is based on include/zephyr/linker/common-rom.ld
-# and som of include/zephyr/linker/common-rom/*.ld
-# Please keep in sync
+# originates from common-rom.ld
 
 zephyr_linker_section(NAME init KVMA RAM_REGION GROUP RODATA_REGION)
 zephyr_linker_section_obj_level(SECTION init LEVEL EARLY)
@@ -75,7 +72,16 @@ endif()
 if(CONFIG_USERSPACE)
   # Build-time assignment of permissions to kernel objects to
   # threads declared with K_THREAD_DEFINE()
-  zephyr_iterable_section(NAME k_object_assignment VMA FLASH SUBALIGN ${CONFIG_LINKER_ITERABLE_SUBALIGN})
+  zephyr_linker_section(
+    NAME k_object_assignment_area
+    VMA FLASH NOINPUT
+    SUBALIGN 4
+  )
+  zephyr_linker_section_configure(
+    SECTION k_object_assignment
+    INPUT ".k_object_assignment.static.*"
+    KEEP SORT NAME
+  )
 endif()
 
 zephyr_linker_section(
@@ -173,9 +179,6 @@ endif()
 zephyr_iterable_section(NAME log_strings KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN ${CONFIG_LINKER_ITERABLE_SUBALIGN})
 
 zephyr_iterable_section(NAME log_const KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN ${CONFIG_LINKER_ITERABLE_SUBALIGN})
-
-zephyr_linker_section(NAME symbol_to_keep GROUP RODATA_REGION NOINPUT)
-zephyr_linker_section_configure(SECTION symbol_to_keep INPUT ".symbol_to_keep*" KEEP SORT NAME)
 
 zephyr_iterable_section(NAME shell KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN ${CONFIG_LINKER_ITERABLE_SUBALIGN})
 

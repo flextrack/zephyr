@@ -11,7 +11,6 @@
 #ifndef _ASMLANGUAGE
 
 #include <zephyr/types.h>
-#include <zephyr/toolchain.h>
 
 #ifdef __cplusplus
 extern "C" {

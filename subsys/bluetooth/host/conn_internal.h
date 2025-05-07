@@ -9,20 +9,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stddef.h>
-#include <stdint.h>
-
-#include <zephyr/bluetooth/addr.h>
-#include <zephyr/bluetooth/buf.h>
-#include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/iso.h>
-#include <zephyr/kernel.h>
-#include <zephyr/net_buf.h>
-#include <zephyr/sys/atomic.h>
-#include <zephyr/sys/slist.h>
-#include <zephyr/sys/util_macro.h>
-#include <zephyr/sys_clock.h>
-#include <zephyr/toolchain.h>
 
 typedef enum __packed {
 	BT_CONN_DISCONNECTED,         /* Disconnected, conn is completely down */
@@ -209,6 +196,9 @@ struct bt_conn_tx {
 };
 
 struct acl_data {
+	/* Extend the bt_buf user data */
+	struct bt_buf_data buf_data;
+
 	/* Index into the bt_conn storage array */
 	uint8_t index;
 
@@ -505,25 +495,20 @@ void notify_subrate_change(struct bt_conn *conn,
 			   struct bt_conn_le_subrate_changed params);
 
 void notify_remote_cs_capabilities(struct bt_conn *conn,
-				   uint8_t status,
-				   struct bt_conn_le_cs_capabilities *params);
+			   struct bt_conn_le_cs_capabilities params);
 
 void notify_remote_cs_fae_table(struct bt_conn *conn,
-				uint8_t status,
-				struct bt_conn_le_cs_fae_table *params);
+			   struct bt_conn_le_cs_fae_table params);
 
-void notify_cs_config_created(struct bt_conn *conn,
-			      uint8_t status,
-			      struct bt_conn_le_cs_config *params);
+void notify_cs_config_created(struct bt_conn *conn, struct bt_conn_le_cs_config *params);
 
 void notify_cs_config_removed(struct bt_conn *conn, uint8_t config_id);
 
 void notify_cs_subevent_result(struct bt_conn *conn, struct bt_conn_le_cs_subevent_result *result);
 
-void notify_cs_security_enable_available(struct bt_conn *conn, uint8_t status);
+void notify_cs_security_enable_available(struct bt_conn *conn);
 
 void notify_cs_procedure_enable_available(struct bt_conn *conn,
-					  uint8_t status,
 					  struct bt_conn_le_cs_procedure_enable_complete *params);
 
 #if defined(CONFIG_BT_SMP)

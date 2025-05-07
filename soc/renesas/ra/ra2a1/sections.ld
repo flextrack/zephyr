@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(id_code))
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(id_code), okay)
 
 SECTION_PROLOGUE(.id_code,,)
 {
@@ -13,7 +13,7 @@ SECTION_PROLOGUE(.id_code,,)
 
 #endif
 
-#if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(option_setting_ofs))
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(option_setting_ofs), okay)
 
 SECTION_PROLOGUE(.option_setting_ofs,,)
 {
@@ -28,7 +28,7 @@ SECTION_PROLOGUE(.option_setting_ofs,,)
 
 #endif
 
-#if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(option_setting_sas))
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(option_setting_sas), okay)
 
 SECTION_PROLOGUE(.option_setting_sas,,)
 {
@@ -39,7 +39,7 @@ SECTION_PROLOGUE(.option_setting_sas,,)
 
 #endif
 
-#if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(option_setting_ns))
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(option_setting_ns), okay)
 
 SECTION_PROLOGUE(.option_setting_ns,,)
 {
@@ -70,7 +70,7 @@ SECTION_PROLOGUE(.option_setting_ns,,)
 
 #endif
 
-#if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(option_setting_s))
+#if DT_NODE_HAS_STATUS(DT_NODELABEL(option_setting_s), okay)
 
 SECTION_PROLOGUE(.option_setting_s,,)
 {

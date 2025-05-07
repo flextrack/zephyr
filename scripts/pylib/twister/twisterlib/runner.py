@@ -1350,7 +1350,7 @@ class ProjectBuilder(FilterBuilder):
         files_to_keep = self._get_binaries()
         files_to_keep.append(os.path.join('zephyr', 'runners.yaml'))
 
-        if self.instance.sysbuild and self.instance.domains:
+        if self.instance.sysbuild:
             files_to_keep.append('domains.yaml')
             for domain in self.instance.domains.get_domains():
                 files_to_keep += self._get_artifact_allow_list_for_domain(domain.name)
@@ -1390,7 +1390,7 @@ class ProjectBuilder(FilterBuilder):
         # Get binaries for a single-domain build
         binaries += self._get_binaries_from_runners()
         # Get binaries in the case of a multiple-domain build
-        if self.instance.sysbuild and self.instance.domains:
+        if self.instance.sysbuild:
             for domain in self.instance.domains.get_domains():
                 binaries += self._get_binaries_from_runners(domain.name)
 
@@ -1553,15 +1553,6 @@ class ProjectBuilder(FilterBuilder):
             f'{TwisterStatus.get_color(instance.status)}{str.upper(instance.status)}{Fore.RESET}'
         )
 
-        def name_columns(instance, plat_width, ts_width):
-            # try to compensate for a platform name longer than plat_width
-            # by reclaiming extra spaces after the testsuite name, if any
-            plat_name = instance.platform.name
-            ts_name = instance.testsuite.name
-            plat_extra = max(0, len(plat_name) - plat_width)
-            ts_width = max(0, ts_width - plat_extra)
-            return f"{plat_name:<{plat_width}} {ts_name:<{ts_width}}"
-
         if instance.status in [TwisterStatus.ERROR, TwisterStatus.FAIL]:
             if instance.status == TwisterStatus.ERROR:
                 results.error_increment()
@@ -1571,7 +1562,7 @@ class ProjectBuilder(FilterBuilder):
                 status += " " + instance.reason
             else:
                 logger.error(
-                    f"{name_columns(instance, 25, 50)}"
+                    f"{instance.platform.name:<25} {instance.testsuite.name:<50}"
                     f" {status}: {instance.reason}"
                 )
             if not self.options.verbose:
@@ -1612,7 +1603,7 @@ class ProjectBuilder(FilterBuilder):
                     more_info += f" <{instance.toolchain}>"
             logger.info(
                 f"{results.done - results.filtered_static:>{total_tests_width}}/{total_to_do}"
-                f" {name_columns(instance, 25, 50)}"
+                f" {instance.platform.name:<25} {instance.testsuite.name:<50}"
                 f" {status} ({more_info})"
             )
 
@@ -1675,8 +1666,8 @@ class ProjectBuilder(FilterBuilder):
                             extra_dtc_overlay_files, cmake_extra_args,
                             build_dir):
         # Retain quotes around config options
-        config_options = [arg for arg in extra_args if arg.startswith(("CONFIG_", "SB_CONFIG_"))]
-        args = [arg for arg in extra_args if not arg.startswith(("CONFIG_", "SB_CONFIG_"))]
+        config_options = [arg for arg in extra_args if arg.startswith("CONFIG_")]
+        args = [arg for arg in extra_args if not arg.startswith("CONFIG_")]
 
         args_expanded = ["-D{}".format(a.replace('"', '\"')) for a in config_options]
 
@@ -1802,6 +1793,7 @@ class ProjectBuilder(FilterBuilder):
             instance.metrics["used_rom"] = 0
             instance.metrics["available_rom"] = 0
             instance.metrics["available_ram"] = 0
+            instance.metrics["unrecognized"] = []
         return build_result
 
     @staticmethod
@@ -1817,11 +1809,13 @@ class ProjectBuilder(FilterBuilder):
                 instance.metrics["used_rom"] = size_calc.get_used_rom()
                 instance.metrics["available_rom"] = size_calc.get_available_rom()
                 instance.metrics["available_ram"] = size_calc.get_available_ram()
+                instance.metrics["unrecognized"] = size_calc.unrecognized_sections()
             else:
                 instance.metrics["used_ram"] = 0
                 instance.metrics["used_rom"] = 0
                 instance.metrics["available_rom"] = 0
                 instance.metrics["available_ram"] = 0
+                instance.metrics["unrecognized"] = []
             instance.metrics["handler_time"] = instance.execution_time
 
 class TwisterRunner:
@@ -1897,6 +1891,7 @@ class TwisterRunner:
                 else:
                     inst.metrics.update(self.instances[inst.name].metrics)
                     inst.metrics["handler_time"] = inst.execution_time
+                    inst.metrics["unrecognized"] = []
                     self.instances[inst.name] = inst
 
             print("")

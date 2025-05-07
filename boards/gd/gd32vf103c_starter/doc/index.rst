@@ -41,8 +41,6 @@ TX connected at PA9 and RX at PA10.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Before programming your board make sure to configure boot and serial jumpers
 as follows:
 

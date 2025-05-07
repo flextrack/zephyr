@@ -6,7 +6,7 @@
 if SOC_SERIES_NPCX4
 
 config NUM_IRQS
-	default 86
+	default 128
 
 config CORTEX_M_SYSTICK
 	default !NPCX_ITIM_TIMER

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2017 Intel Corporation
- * Copyright (c) 2021-2025 Espressif Systems (Shanghai) Co., Ltd.
+ * Copyright (c) 2021 Espressif Systems (Shanghai) Co., Ltd.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -20,7 +20,13 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/dt-bindings/gpio/espressif-esp32-gpio.h>
+#if defined(CONFIG_SOC_SERIES_ESP32C2) || \
+	defined(CONFIG_SOC_SERIES_ESP32C3) || \
+	defined(CONFIG_SOC_SERIES_ESP32C6)
+#include <zephyr/drivers/interrupt_controller/intc_esp32c3.h>
+#else
 #include <zephyr/drivers/interrupt_controller/intc_esp32.h>
+#endif
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
 
@@ -35,7 +41,8 @@ LOG_MODULE_REGISTER(gpio_esp32, CONFIG_LOG_DEFAULT_LEVEL);
 #define out_w1ts out_w1ts.val
 #define out_w1tc out_w1tc.val
 /* arch_curr_cpu() is not available for riscv based chips */
-#define ESP32_CPU_ID()  0
+#define CPU_ID()  0
+#define ISR_HANDLER isr_handler_t
 #elif CONFIG_SOC_SERIES_ESP32C3
 /* gpio structs in esp32c3 series are different from xtensa ones */
 #define out out.data
@@ -43,7 +50,8 @@ LOG_MODULE_REGISTER(gpio_esp32, CONFIG_LOG_DEFAULT_LEVEL);
 #define out_w1ts out_w1ts.val
 #define out_w1tc out_w1tc.val
 /* arch_curr_cpu() is not available for riscv based chips */
-#define ESP32_CPU_ID()  0
+#define CPU_ID()  0
+#define ISR_HANDLER isr_handler_t
 #elif defined(CONFIG_SOC_SERIES_ESP32C6)
 /* gpio structs in esp32c6 are also different */
 #define out out.out_data_orig
@@ -51,9 +59,11 @@ LOG_MODULE_REGISTER(gpio_esp32, CONFIG_LOG_DEFAULT_LEVEL);
 #define out_w1ts out_w1ts.val
 #define out_w1tc out_w1tc.val
 /* arch_curr_cpu() is not available for riscv based chips */
-#define ESP32_CPU_ID()  0
+#define CPU_ID()  0
+#define ISR_HANDLER isr_handler_t
 #else
-#define ESP32_CPU_ID() arch_curr_cpu()->id
+#define CPU_ID() arch_curr_cpu()->id
+#define ISR_HANDLER intr_handler_t
 #endif
 
 #ifndef SOC_GPIO_SUPPORT_RTC_INDEPENDENT
@@ -413,7 +423,7 @@ static int gpio_esp32_pin_interrupt_configure(const struct device *port,
 	}
 
 	gpio_ll_set_intr_type(cfg->gpio_base, io_pin, intr_trig_mode);
-	gpio_ll_intr_enable_on_core(cfg->gpio_base, ESP32_CPU_ID(), io_pin);
+	gpio_ll_intr_enable_on_core(cfg->gpio_base, CPU_ID(), io_pin);
 	irq_unlock(key);
 
 	return 0;
@@ -432,7 +442,7 @@ static uint32_t gpio_esp32_get_pending_int(const struct device *dev)
 {
 	const struct gpio_esp32_config *const cfg = dev->config;
 	uint32_t irq_status;
-	uint32_t const core_id = ESP32_CPU_ID();
+	uint32_t const core_id = CPU_ID();
 
 	if (cfg->gpio_port == 0) {
 		gpio_ll_get_intr_status(cfg->gpio_base, core_id, &irq_status);
@@ -448,7 +458,7 @@ static void IRAM_ATTR gpio_esp32_fire_callbacks(const struct device *dev)
 	const struct gpio_esp32_config *const cfg = dev->config;
 	struct gpio_esp32_data *data = dev->data;
 	uint32_t irq_status;
-	uint32_t const core_id = ESP32_CPU_ID();
+	uint32_t const core_id = CPU_ID();
 
 	if (cfg->gpio_port == 0) {
 		gpio_ll_get_intr_status(cfg->gpio_base, core_id, &irq_status);
@@ -472,9 +482,8 @@ static int gpio_esp32_init(const struct device *dev)
 	if (!isr_connected) {
 		int ret = esp_intr_alloc(DT_IRQ_BY_IDX(DT_NODELABEL(gpio0), 0, irq),
 			ESP_PRIO_TO_FLAGS(DT_IRQ_BY_IDX(DT_NODELABEL(gpio0), 0, priority)) |
-			ESP_INT_FLAGS_CHECK(DT_IRQ_BY_IDX(DT_NODELABEL(gpio0), 0, flags)) |
-				ESP_INTR_FLAG_IRAM,
-			(intr_handler_t)gpio_esp32_isr,
+			ESP_INT_FLAGS_CHECK(DT_IRQ_BY_IDX(DT_NODELABEL(gpio0), 0, flags)),
+			(ISR_HANDLER)gpio_esp32_isr,
 			(void *)dev,
 			NULL);
 

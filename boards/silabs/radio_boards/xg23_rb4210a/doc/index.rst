@@ -99,8 +99,6 @@ USART0 is connected to the board controller and is used for the console.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Flashing
 ========
 

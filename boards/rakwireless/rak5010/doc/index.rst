@@ -55,8 +55,6 @@ LED
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 The RAK5010 board shall be connected to a Segger Embedded Debugger Unit
 `J-Link OB <https://www.segger.com/jlink-ob.html>`_.  This provides a debug
 interface to the NRF52840 chip. You can use JLink to communicate with

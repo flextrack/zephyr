@@ -5,11 +5,14 @@ description: Ambiq MSPI
 
 compatible: "ambiq,mspi"
 
-include: [spi-controller.yaml, pinctrl-device.yaml]
+include: [spi-controller.yaml, pinctrl-device.yaml, ambiq-pwrcfg.yaml]
 
 properties:
   reg:
     required: true
 
   interrupts:
+    required: true
+
+  ambiq,pwrcfg:
     required: true

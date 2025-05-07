@@ -37,11 +37,6 @@
 extern "C" {
 #endif
 
-/** A characteristic value has changed while a Read Long Value Characteristic sub-procedure is in
- * progress
- */
-#define BT_TBS_ERR_VAL_CHANGED 0x80
-
 /**
  * @name Call States
  * @{

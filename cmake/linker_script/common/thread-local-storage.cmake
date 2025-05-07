@@ -1,5 +1,4 @@
-# The contents of this file is based on include/zephyr/linker/thread-local-storage.ld
-# Please keep in sync
+# originates from thread-local-storage.ld
 
 if(CONFIG_THREAD_LOCAL_STORAGE)
   zephyr_linker_section(NAME .tdata LMA FLASH NOINPUT)

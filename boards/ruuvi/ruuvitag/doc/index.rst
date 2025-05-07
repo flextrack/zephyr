@@ -99,8 +99,6 @@ P1 = TC2030 TagConnect (on RuuviTag Rev.B6)
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Flashing
 ========
 

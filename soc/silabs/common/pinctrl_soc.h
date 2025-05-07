@@ -74,10 +74,7 @@ typedef struct pinctrl_soc_pin {
 		 (FIELD_GET(SILABS_PINCTRL_HAVE_EN_MASK, DT_PROP_BY_IDX(node, prop, idx))          \
 			  ? FIELD_GET(SILABS_PINCTRL_EN_BIT_MASK, DT_PROP_BY_IDX(node, prop, idx)) \
 			  : SILABS_PINCTRL_UNUSED),                                                \
-	 .route_offset =                                                                           \
-		 (FIELD_GET(SILABS_PINCTRL_HAVE_ROUTE_MASK, DT_PROP_BY_IDX(node, prop, idx))       \
-			  ? FIELD_GET(SILABS_PINCTRL_ROUTE_MASK, DT_PROP_BY_IDX(node, prop, idx))  \
-			  : SILABS_PINCTRL_UNUSED),                                                \
+	 .route_offset = FIELD_GET(SILABS_PINCTRL_ROUTE_MASK, DT_PROP_BY_IDX(node, prop, idx)),    \
 	 .mode = Z_PINCTRL_SILABS_MODE_INIT(node),                                                 \
 	 .dout = Z_PINCTRL_SILABS_DOUT_INIT(node)},
 

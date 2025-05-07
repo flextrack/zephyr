@@ -123,8 +123,6 @@ supports both device and host functions through its micro USB connector
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Nucleo F413ZH board includes an ST-LINK/V2-1 embedded debug tool interface.
 
 Flashing

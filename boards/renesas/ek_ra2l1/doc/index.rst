@@ -51,8 +51,6 @@ Supported Features
 Programming and debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Building & Flashing
 ===================
 

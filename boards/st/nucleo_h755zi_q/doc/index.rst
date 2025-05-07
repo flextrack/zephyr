@@ -93,7 +93,6 @@ and a ST morpho connector. Board is configured as follows:
 - LD2 : PE1
 - LD3 : PB14
 - I2C : PB8, PB9
-- CAN/CANFD : PD0, PD1
 
 System Clock
 ------------
@@ -107,11 +106,6 @@ Serial Port
 
 Nucleo H755ZI-Q board has 4 UARTs and 4 USARTs. The Zephyr console output is
 assigned to USART3. Default settings are 115200 8N1.
-
-CAN, CANFD
-----------
-
-Requires an external CAN or CANFD transceiver.
 
 Resources sharing
 -----------------
@@ -130,8 +124,6 @@ two cores. This is done in 3 ways:
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 Nucleo H755ZI-Q board includes an ST-LINK/V3 embedded debug tool interface.
 

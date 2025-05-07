@@ -384,11 +384,10 @@ int websocket_connect(int sock, struct websocket_request *wreq,
 
 	NET_DBG("[%p] WS connection to peer established (fd %d)", ctx, fd);
 
-	/* We will re-use the temp buffer in receive function. If there were
-	 * any leftover data from HTTP headers processing, we need to reflect
-	 * this in the count variable.
+	/* We will re-use the temp buffer in receive function if needed but
+	 * in order that to work the amount of data in buffer must be set to 0
 	 */
-	ctx->recv_buf.count = req.data_len;
+	ctx->recv_buf.count = 0;
 
 	/* Init parser FSM */
 	ctx->parser_state = WEBSOCKET_PARSER_STATE_OPCODE;
@@ -422,7 +421,7 @@ static int websocket_interal_disconnect(struct websocket_context *ctx)
 	NET_DBG("[%p] Disconnecting", ctx);
 
 	ret = websocket_send_msg(ctx->sock, NULL, 0, WEBSOCKET_OPCODE_CLOSE,
-				 ctx->is_client, true, SYS_FOREVER_MS);
+				 true, true, SYS_FOREVER_MS);
 	if (ret < 0) {
 		NET_DBG("[%p] Failed to send close message (err %d).", ctx, ret);
 	}

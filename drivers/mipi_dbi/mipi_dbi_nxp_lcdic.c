@@ -9,8 +9,6 @@
 #include <zephyr/drivers/mipi_dbi.h>
 #include <zephyr/drivers/pinctrl.h>
 #include <zephyr/drivers/clock_control.h>
-#include <zephyr/pm/device.h>
-#include <zephyr/pm/policy.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/drivers/dma.h>
 #include <zephyr/logging/log.h>
@@ -112,13 +110,6 @@ struct mipi_dbi_lcdic_data {
 	uint8_t pixel_fmt;
 	/* Tracks TE edge setting we should use for pixel data */
 	uint8_t te_edge;
-	/* Tracks TE delay setting we should use */
-	k_timeout_t te_delay;
-	/* Flag indicates we need to reconfigure TE signal.
-	 * This is the case when we exit low power modes where we
-	 * need to configure the hardware registers.
-	 */
-	bool reconfigure_te;
 	/* Are we starting a new display frame */
 	bool new_frame;
 	const struct mipi_dbi_config *active_cfg;
@@ -427,16 +418,12 @@ static int mipi_dbi_lcdic_write_display(const struct device *dev,
 
 	ret = k_sem_take(&dev_data->lock, K_FOREVER);
 	if (ret) {
-		goto release_sem;
+		goto out;
 	}
-
-#ifdef CONFIG_PM_POLICY_DEVICE_CONSTRAINTS
-	pm_policy_device_power_lock_get(dev);
-#endif
 
 	ret = mipi_dbi_lcdic_configure(dev, dbi_config);
 	if (ret) {
-		goto release_power_lock;
+		goto out;
 	}
 
 	if (dev_data->new_frame) {
@@ -505,7 +492,7 @@ static int mipi_dbi_lcdic_write_display(const struct device *dev,
 		ret = mipi_dbi_lcdic_start_dma(dev);
 		if (ret) {
 			LOG_ERR("Could not start DMA (%d)", ret);
-			goto release_power_lock;
+			goto out;
 		}
 #else
 		/* Enable TX FIFO threshold interrupt. This interrupt
@@ -519,19 +506,8 @@ static int mipi_dbi_lcdic_write_display(const struct device *dev,
 		base->IMR &= ~interrupts;
 #endif
 		ret = k_sem_take(&dev_data->xfer_sem, K_FOREVER);
-		/* Do not release the lock from the power states.
-		 * This is released in the ISR after the transfer
-		 * is complete.
-		 */
-		goto release_sem;
 	}
-
-release_power_lock:
-#ifdef CONFIG_PM_POLICY_DEVICE_CONSTRAINTS
-	pm_policy_device_power_lock_put(dev);
-#endif
-
-release_sem:
+out:
 	k_sem_give(&dev_data->lock);
 	return ret;
 
@@ -551,16 +527,12 @@ static int mipi_dbi_lcdic_write_cmd(const struct device *dev,
 
 	ret = k_sem_take(&dev_data->lock, K_FOREVER);
 	if (ret) {
-		goto release_sem;
+		goto out;
 	}
-
-#ifdef CONFIG_PM_POLICY_DEVICE_CONSTRAINTS
-	pm_policy_device_power_lock_get(dev);
-#endif
 
 	ret = mipi_dbi_lcdic_configure(dev, dbi_config);
 	if (ret) {
-		goto release_power_lock;
+		goto out;
 	}
 
 	/* State reset is required before transfer */
@@ -608,7 +580,7 @@ static int mipi_dbi_lcdic_write_cmd(const struct device *dev,
 			ret = mipi_dbi_lcdic_start_dma(dev);
 			if (ret) {
 				LOG_ERR("Could not start DMA (%d)", ret);
-				goto release_power_lock;
+				goto out;
 			}
 		} else /* Data is not aligned */
 #endif
@@ -624,19 +596,8 @@ static int mipi_dbi_lcdic_write_cmd(const struct device *dev,
 			base->IMR &= ~interrupts;
 		}
 		ret = k_sem_take(&dev_data->xfer_sem, K_FOREVER);
-		/* Do not release the lock from the power states.
-		 * This is released in the ISR after the transfer
-		 * is complete.
-		 */
-		goto release_sem;
 	}
-
-release_power_lock:
-#ifdef CONFIG_PM_POLICY_DEVICE_CONSTRAINTS
-	pm_policy_device_power_lock_put(dev);
-#endif
-
-release_sem:
+out:
 	k_sem_give(&dev_data->lock);
 	return ret;
 }
@@ -725,15 +686,12 @@ static int mipi_dbi_lcdic_configure_te(const struct device *dev,
 	reg |= LCDIC_TE_CTRL_TTEW(ttew);
 	base->TE_CTRL = reg;
 	data->te_edge = edge;
-	data->te_delay = delay;
-	/* We should re-configure te signal when coming out of PM mode */
-	data->reconfigure_te = true;
 	return 0;
 }
 
 
 /* Initializes LCDIC peripheral */
-static int mipi_dbi_lcdic_init_common(const struct device *dev)
+static int mipi_dbi_lcdic_init(const struct device *dev)
 {
 	const struct mipi_dbi_lcdic_config *config = dev->config;
 	struct mipi_dbi_lcdic_data *data = dev->data;
@@ -753,6 +711,14 @@ static int mipi_dbi_lcdic_init_common(const struct device *dev)
 	}
 
 	ret = pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
+	if (ret) {
+		return ret;
+	}
+	ret = k_sem_init(&data->xfer_sem, 0, 1);
+	if (ret) {
+		return ret;
+	}
+	ret = k_sem_init(&data->lock, 1, 1);
 	if (ret) {
 		return ret;
 	}
@@ -821,9 +787,6 @@ static void mipi_dbi_lcdic_isr(const struct device *dev)
 			base->IMR |= LCDIC_ALL_INTERRUPTS;
 			/* All data has been sent. */
 			k_sem_give(&data->xfer_sem);
-#ifdef CONFIG_PM_POLICY_DEVICE_CONSTRAINTS
-			pm_policy_device_power_lock_put(dev);
-#endif
 		} else {
 			/* Command done. Queue next command */
 			data->cmd_bytes = MIN(data->xfer_bytes, LCDIC_MAX_XFER);
@@ -874,49 +837,6 @@ static void mipi_dbi_lcdic_isr(const struct device *dev)
 			data->xfer_bytes -= bytes_written;
 		}
 	}
-}
-
-static int mipi_dbi_lcdic_pm_action(const struct device *dev, enum pm_device_action action)
-{
-	struct mipi_dbi_lcdic_data *data = dev->data;
-
-	switch (action) {
-	case PM_DEVICE_ACTION_RESUME:
-		break;
-	case PM_DEVICE_ACTION_SUSPEND:
-		break;
-	case PM_DEVICE_ACTION_TURN_OFF:
-		break;
-	case PM_DEVICE_ACTION_TURN_ON:
-		mipi_dbi_lcdic_init_common(dev);
-		data->active_cfg = NULL;
-		if (data->reconfigure_te) {
-			mipi_dbi_lcdic_configure_te(dev, data->te_edge, data->te_delay);
-		}
-		break;
-	default:
-		return -ENOTSUP;
-	}
-	return 0;
-}
-
-static int mipi_dbi_lcdic_init(const struct device *dev)
-{
-	struct mipi_dbi_lcdic_data *data = dev->data;
-	int ret;
-
-	ret = k_sem_init(&data->xfer_sem, 0, 1);
-	if (ret) {
-		return ret;
-	}
-	ret = k_sem_init(&data->lock, 1, 1);
-	if (ret) {
-		return ret;
-	}
-	/* Rest of the init is done from the PM_DEVICE_TURN_ON action
-	 * which is invoked by pm_device_driver_init().
-	 */
-	return pm_device_driver_init(dev, mipi_dbi_lcdic_pm_action);
 }
 
 #ifdef CONFIG_MIPI_DBI_NXP_LCDIC_DMA
@@ -971,9 +891,7 @@ static int mipi_dbi_lcdic_init(const struct device *dev)
 	static struct mipi_dbi_lcdic_data mipi_dbi_lcdic_data_##n = {	\
 		LCDIC_DMA_CHANNELS(n)					\
 	};								\
-	PM_DEVICE_DT_INST_DEFINE(n, mipi_dbi_lcdic_pm_action);		\
-	DEVICE_DT_INST_DEFINE(n, mipi_dbi_lcdic_init,			\
-			PM_DEVICE_DT_INST_GET(n),			\
+	DEVICE_DT_INST_DEFINE(n, mipi_dbi_lcdic_init, NULL,		\
 			&mipi_dbi_lcdic_data_##n,			\
 			&mipi_dbi_lcdic_config_##n,			\
 			POST_KERNEL,					\

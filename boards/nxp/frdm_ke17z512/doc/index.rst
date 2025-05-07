@@ -35,7 +35,44 @@ these NXP reference documents:
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The frdm_ke17z512 board configuration supports the following hardware
+features:
+
++-----------+------------+-------------------------------------+
+| Interface | Controller | Driver/Component                    |
++===========+============+=====================================+
+| NVIC      | on-chip    | nested vector interrupt controller  |
++-----------+------------+-------------------------------------+
+| SYSTICK   | on-chip    | systick                             |
++-----------+------------+-------------------------------------+
+| ADC       | on-chip    | adc                                 |
++-----------+------------+-------------------------------------+
+| GPIO      | on-chip    | gpio                                |
++-----------+------------+-------------------------------------+
+| LPTMR     | on-chip    | counter                             |
++-----------+------------+-------------------------------------+
+| UART      | on-chip    | uart polling;                       |
+|           |            | uart interrupt                      |
++-----------+------------+-------------------------------------+
+| FTM       | on-chip    | pwm                                 |
++-----------+------------+-------------------------------------+
+| I2C       | on-chip    | I2C                                 |
++-----------+------------+-------------------------------------+
+| RTC       | on-chip    | counter                             |
++-----------+------------+-------------------------------------+
+| ACMP      | on-chip    | sensor                              |
++-----------+------------+-------------------------------------+
+| SPI       | on-chip    | spi                                 |
++-----------+------------+-------------------------------------+
+| DMA       | on-chip    | dma                                 |
++-----------+------------+-------------------------------------+
+| WATCHDOG  | on-chip    | watchdog                            |
++-----------+------------+-------------------------------------+
+
+The default configuration can be found in the defconfig file:
+``boards/nxp/frdm_ke17z512/frdm_ke17z512_defconfig``.
+
+Other hardware features are not currently supported by the port.
 
 System Clock
 ============
@@ -49,8 +86,6 @@ The KE17Z9 SoC has three LPUARTs. UART2 is configured for the console.
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 Build and flash applications as usual (see :ref:`build_an_application` and
 :ref:`application_run` for more details).

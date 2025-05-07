@@ -44,8 +44,12 @@ LOG_MODULE_REGISTER(net_mdns_responder, CONFIG_MDNS_RESPONDER_LOG_LEVEL);
  * address-family-specific variants being of differing sizes. Let's not
  * mess with code (which looks correct), just silence the compiler.
  */
-TOOLCHAIN_DISABLE_GCC_WARNING(TOOLCHAIN_WARNING_ARRAY_BOUNDS);
-TOOLCHAIN_DISABLE_GCC_WARNING(TOOLCHAIN_WARNING_STRINGOP_OVERREAD);
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overread"
+#endif
 
 extern void dns_dispatcher_svc_handler(struct net_socket_service_event *pev);
 
@@ -237,6 +241,7 @@ static int get_socket(sa_family_t family)
 	ret = zsock_socket(family, SOCK_DGRAM, IPPROTO_UDP);
 	if (ret < 0) {
 		ret = -errno;
+		NET_DBG("Cannot get socket (%d)", ret);
 	}
 
 	return ret;
@@ -1343,9 +1348,9 @@ static int init_listener(void)
 
 		v6 = get_socket(AF_INET6);
 		if (v6 < 0) {
-			NET_ERR("Cannot get %s socket (%d %s interfaces). Max sockets is %d (%d)",
+			NET_ERR("Cannot get %s socket (%d %s interfaces). Max sockets is %d",
 				"IPv6", MAX_IPV6_IFACE_COUNT,
-				"IPv6", CONFIG_NET_MAX_CONTEXTS, v6);
+				"IPv6", CONFIG_NET_MAX_CONTEXTS);
 			continue;
 		}
 
@@ -1363,8 +1368,7 @@ static int init_listener(void)
 				ifindex, ret);
 		} else {
 			memset(&if_req, 0, sizeof(if_req));
-			memcpy(if_req.ifr_name, name,
-			       MIN(sizeof(name) - 1, sizeof(if_req.ifr_name) - 1));
+			strncpy(if_req.ifr_name, name, sizeof(if_req.ifr_name) - 1);
 
 			ret = zsock_setsockopt(v6, SOL_SOCKET, SO_BINDTODEVICE,
 					       &if_req, sizeof(if_req));
@@ -1440,9 +1444,9 @@ static int init_listener(void)
 
 		v4 = get_socket(AF_INET);
 		if (v4 < 0) {
-			NET_ERR("Cannot get %s socket (%d %s interfaces). Max sockets is %d (%d)",
+			NET_ERR("Cannot get %s socket (%d %s interfaces). Max sockets is %d",
 				"IPv4", MAX_IPV4_IFACE_COUNT,
-				"IPv4", CONFIG_NET_MAX_CONTEXTS, v4);
+				"IPv4", CONFIG_NET_MAX_CONTEXTS);
 			continue;
 		}
 
@@ -1460,8 +1464,7 @@ static int init_listener(void)
 				ifindex, ret);
 		} else {
 			memset(&if_req, 0, sizeof(if_req));
-			memcpy(if_req.ifr_name, name,
-			       MIN(sizeof(name) - 1, sizeof(if_req.ifr_name) - 1));
+			strncpy(if_req.ifr_name, name, sizeof(if_req.ifr_name) - 1);
 
 			ret = zsock_setsockopt(v4, SOL_SOCKET, SO_BINDTODEVICE,
 					       &if_req, sizeof(if_req));

@@ -11,6 +11,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/portability/cmsis_os2.h>
 
+/** @brief Size for names of RTOS objects. */
+#define CMSIS_OBJ_NAME_MAX_LEN 16
+
 /**
  * @brief Control block for a CMSIS-RTOSv2 thread.
  *
@@ -23,6 +26,7 @@ struct cmsis_rtos_thread_cb {
 	struct k_poll_signal poll_signal;
 	struct k_poll_event poll_event;
 	uint32_t signal_results;
+	char name[CMSIS_OBJ_NAME_MAX_LEN];
 	uint32_t attr_bits;
 };
 
@@ -37,7 +41,7 @@ struct cmsis_rtos_timer_cb {
 	osTimerType_t type;
 	uint32_t status;
 	bool is_cb_dynamic_allocation;
-	const char *name;
+	char name[CMSIS_OBJ_NAME_MAX_LEN];
 	void (*callback_function)(void *argument);
 	void *arg;
 };
@@ -51,7 +55,7 @@ struct cmsis_rtos_timer_cb {
 struct cmsis_rtos_mutex_cb {
 	struct k_mutex z_mutex;
 	bool is_cb_dynamic_allocation;
-	const char *name;
+	char name[CMSIS_OBJ_NAME_MAX_LEN];
 	uint32_t state;
 };
 
@@ -64,7 +68,7 @@ struct cmsis_rtos_mutex_cb {
 struct cmsis_rtos_semaphore_cb {
 	struct k_sem z_semaphore;
 	bool is_cb_dynamic_allocation;
-	const char *name;
+	char name[CMSIS_OBJ_NAME_MAX_LEN];
 };
 
 /**
@@ -78,7 +82,7 @@ struct cmsis_rtos_mempool_cb {
 	void *pool;
 	char is_dynamic_allocation;
 	bool is_cb_dynamic_allocation;
-	const char *name;
+	char name[CMSIS_OBJ_NAME_MAX_LEN];
 };
 
 /**
@@ -92,7 +96,7 @@ struct cmsis_rtos_msgq_cb {
 	void *pool;
 	char is_dynamic_allocation;
 	bool is_cb_dynamic_allocation;
-	const char *name;
+	char name[CMSIS_OBJ_NAME_MAX_LEN];
 };
 
 /**
@@ -106,7 +110,7 @@ struct cmsis_rtos_event_cb {
 	struct k_poll_event poll_event;
 	uint32_t signal_results;
 	bool is_cb_dynamic_allocation;
-	const char *name;
+	char name[CMSIS_OBJ_NAME_MAX_LEN];
 };
 
 #endif

@@ -59,8 +59,6 @@
 	/* Not needed */
 #elif defined(CONFIG_SPARC)
 	OUTPUT_FORMAT("elf32-sparc")
-#elif defined(CONFIG_RX)
-	OUTPUT_FORMAT("elf32-rx-le")
 #else
 	#error Arch not supported.
 #endif

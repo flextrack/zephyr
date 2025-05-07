@@ -301,9 +301,7 @@ enum net_verdict net_context_packet_received(struct net_conn *conn,
 					     void *user_data);
 
 #if defined(CONFIG_NET_IPV4)
-uint16_t net_calc_chksum_ipv4(struct net_pkt *pkt);
-#else
-#define net_calc_chksum_ipv4(...) 0U
+extern uint16_t net_calc_chksum_ipv4(struct net_pkt *pkt);
 #endif /* CONFIG_NET_IPV4 */
 
 #if defined(CONFIG_NET_IPV4_IGMP)

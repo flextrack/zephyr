@@ -46,10 +46,6 @@ static void entry_extra2(void *p1, void *p2, void *p3)
 
 	k_event_post(&test_event, events);
 }
-/**
-* @ingroup kernel_event_tests
-* @{
-*/
 
 /**
  * Test the k_event_init() API.
@@ -57,6 +53,7 @@ static void entry_extra2(void *p1, void *p2, void *p3)
  * This is a white-box test to verify that the k_event_init() API initializes
  * the fields of a k_event structure as expected.
  */
+
 ZTEST(events_api, test_k_event_init)
 {
 	static struct k_event  event;
@@ -434,6 +431,3 @@ ZTEST(events_api, test_event_receive)
 
 	test_wake_multiple_threads();
 }
-/**
- * @}
- */

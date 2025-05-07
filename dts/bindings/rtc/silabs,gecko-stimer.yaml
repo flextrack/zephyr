@@ -1,11 +1,7 @@
 # Copyright (c) 2021, Sateesh Kotapati
 # SPDX-License-Identifier: Apache-2.0
 
-title: Silicon Labs Series 2 Sleeptimer
-
-description: |
-  Generic interface for low-frequency timers using the Sleeptimer HAL on
-  Silicon Labs Series 2 SoCs.
+description: Silabs Gecko Sleep Timer (Real-Time Counter)
 
 compatible: "silabs,gecko-stimer"
 

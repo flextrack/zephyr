@@ -16,7 +16,6 @@ extern "C" {
 
 /**
  * @defgroup log_frontend_stmesp_apis Trace and Debug Domain APIs
- * @ingroup logging
  * @{
  * @}
  * @defgroup log_frontend_stpesp_demux_apis Logging frontend STMESP Demultiplexer API
@@ -291,7 +290,6 @@ void log_frontend_stmesp_demux_free(union log_frontend_stmesp_demux_packet packe
  *         cannot be retrieved.
  */
 const char *log_frontend_stmesp_demux_sname_get(uint32_t m_id, uint16_t s_id);
-const char *log_frontend_stmesp_demux_str_get(uint32_t m_id, uint16_t s_id);
 
 /** @brief Check if there are any started but not completed log messages.
  *

@@ -75,8 +75,6 @@ version, 433MHz or 900MHz is supported.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 The Adafruit Feather M0 with LoRa ships with a BOSSA compatible
 SAM-BA bootloader.  The bootloader can be entered by quickly tapping
 the reset button twice.

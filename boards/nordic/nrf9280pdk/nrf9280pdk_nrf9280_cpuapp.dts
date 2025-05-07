@@ -98,7 +98,6 @@
 
 	pwmleds {
 		compatible = "pwm-leds";
-
 		/*
 		 * LEDs are connected to GPIO Port 9 - pins 2-5. There is no valid hardware
 		 * configuration to pass PWM signal on pins 0 and 1. First valid config is P9.2.
@@ -249,7 +248,7 @@ ipc0: &cpuapp_cpurad_ipc {
 	status = "okay";
 
 	mx25uw63: mx25uw6345g@0 {
-		compatible = "mxicy,mx25u", "jedec,mspi-nor";
+		compatible = "jedec,mspi-nor";
 		status = "disabled";
 		reg = <0>;
 		jedec-id = [c2 84 37];

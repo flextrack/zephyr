@@ -5,10 +5,8 @@
  */
 
 #include <zephyr/init.h>
-#include <zephyr/logging/log.h>
-#include <soc.h>
 
-LOG_MODULE_REGISTER(soc, CONFIG_SOC_LOG_LEVEL);
+#include <am_mcu_apollo.h>
 
 extern void ambiq_power_init(void);
 

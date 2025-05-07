@@ -62,14 +62,15 @@ int enabled_clock(uint32_t src_clk)
 	return -ENOTSUP;
 }
 
-static int stm32_clock_control_on(const struct device *dev, clock_control_subsys_t sub_system)
+static inline int stm32_clock_control_on(const struct device *dev,
+					 clock_control_subsys_t sub_system)
 {
 	struct stm32_pclken *pclken = (struct stm32_pclken *)(sub_system);
 	volatile int temp;
 
 	ARG_UNUSED(dev);
 
-	if (!IN_RANGE(pclken->bus, STM32_PERIPH_BUS_MIN, STM32_PERIPH_BUS_MAX)) {
+	if (IN_RANGE(pclken->bus, STM32_PERIPH_BUS_MIN, STM32_PERIPH_BUS_MAX) == 0) {
 		/* Attempt to toggle a wrong periph clock bit */
 		return -ENOTSUP;
 	}
@@ -83,13 +84,14 @@ static int stm32_clock_control_on(const struct device *dev, clock_control_subsys
 	return 0;
 }
 
-static int stm32_clock_control_off(const struct device *dev, clock_control_subsys_t sub_system)
+static inline int stm32_clock_control_off(const struct device *dev,
+					  clock_control_subsys_t sub_system)
 {
 	struct stm32_pclken *pclken = (struct stm32_pclken *)(sub_system);
 
 	ARG_UNUSED(dev);
 
-	if (!IN_RANGE(pclken->bus, STM32_PERIPH_BUS_MIN, STM32_PERIPH_BUS_MAX)) {
+	if (IN_RANGE(pclken->bus, STM32_PERIPH_BUS_MIN, STM32_PERIPH_BUS_MAX) == 0) {
 		/* Attempt to toggle a wrong periph clock bit */
 		return -ENOTSUP;
 	}
@@ -100,9 +102,9 @@ static int stm32_clock_control_off(const struct device *dev, clock_control_subsy
 	return 0;
 }
 
-static int stm32_clock_control_configure(const struct device *dev,
-					 clock_control_subsys_t sub_system,
-					 void *data)
+static inline int stm32_clock_control_configure(const struct device *dev,
+						clock_control_subsys_t sub_system,
+						void *data)
 {
 #if defined(STM32_SRC_CLOCK_MIN)
 	/* At least one alt src clock available */
@@ -285,7 +287,7 @@ static enum clock_control_status stm32_clock_control_get_status(const struct dev
 
 	ARG_UNUSED(dev);
 
-	if (IN_RANGE(pclken->bus, STM32_PERIPH_BUS_MIN, STM32_PERIPH_BUS_MAX)) {
+	if (IN_RANGE(pclken->bus, STM32_PERIPH_BUS_MIN, STM32_PERIPH_BUS_MAX) == true) {
 		/* Gated clocks */
 		if ((sys_read32(DT_REG_ADDR(DT_NODELABEL(rcc)) + pclken->bus) & pclken->enr)
 		    == pclken->enr) {

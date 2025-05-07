@@ -17,16 +17,6 @@
 #include <zephyr/kernel_structs.h>
 #include <zephyr/irq_offload.h>
 
-/**
- * @defgroup kernel_irq_offload_tests IRQ Offload
- * @ingroup all_tests
- * @{
- * @}
- *
- * @addtogroup kernel_irq_offload_tests
- * @{
- */
-
 volatile uint32_t sentinel;
 #define SENTINEL_VALUE 0xDEADBEEF
 
@@ -45,6 +35,8 @@ static void offload_function(const void *param)
 
 /**
  * @brief Verify thread context
+ *
+ * @ingroup kernel_interrupt_tests
  *
  * @details Check whether offloaded running function is in interrupt
  * context, on the IRQ stack or not.
@@ -105,8 +97,7 @@ static void offload_thread_fn(void *p0, void *p1, void *p2)
 	}
 }
 
-/**
- * @brief Invoke irq_offload from an interrupt and verify that the
+/* Invoke irq_offload() from an interrupt and verify that the
  * resulting nested interrupt doesn't explode
  */
 ZTEST(common_1cpu, test_nested_irq_offload)
@@ -139,8 +130,6 @@ ZTEST(common_1cpu, test_nested_irq_offload)
 
 	k_thread_abort(&offload_thread);
 }
-/**
- * @}
- */
+
 extern void *common_setup(void);
 ZTEST_SUITE(irq_offload, NULL, common_setup, NULL, NULL, NULL);

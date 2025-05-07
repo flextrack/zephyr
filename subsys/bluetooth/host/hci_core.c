@@ -7,64 +7,56 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include <errno.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
 #include <zephyr/autoconf.h>
-#include <zephyr/bluetooth/addr.h>
-#include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/buf.h>
-#include <zephyr/bluetooth/conn.h>
-#include <zephyr/bluetooth/direction.h>
-#include <zephyr/bluetooth/gap.h>
-#include <zephyr/bluetooth/l2cap.h>
-#include <zephyr/bluetooth/hci.h>
+
 #include <zephyr/bluetooth/hci_types.h>
-#include <zephyr/bluetooth/hci_vs.h>
-#include <zephyr/bluetooth/testing.h>
-#include <zephyr/debug/stack.h>
-#include <zephyr/device.h>
-#include <zephyr/devicetree.h>
-#include <zephyr/drivers/bluetooth.h>
 #include <zephyr/kernel.h>
-#include <zephyr/kernel/thread.h>
-#include <zephyr/kernel/thread_stack.h>
-#include <zephyr/logging/log.h>
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
 #include <zephyr/net_buf.h>
-#include <zephyr/settings/settings.h>
 #include <zephyr/sys/atomic.h>
 #include <zephyr/sys/check.h>
 #include <zephyr/sys/util_macro.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/sys/slist.h>
 #include <zephyr/sys/byteorder.h>
+#include <zephyr/debug/stack.h>
 #include <zephyr/sys/__assert.h>
-#include <zephyr/sys_clock.h>
-#include <zephyr/toolchain.h>
 #include <soc.h>
 
-#include "addr_internal.h"
-#include "adv.h"
+#include <zephyr/settings/settings.h>
+
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/conn.h>
+#include <zephyr/bluetooth/l2cap.h>
+#include <zephyr/bluetooth/hci.h>
+#include <zephyr/bluetooth/hci_vs.h>
+#include <zephyr/bluetooth/testing.h>
+#include <zephyr/drivers/bluetooth.h>
+
 #include "common/hci_common_internal.h"
 #include "common/bt_str.h"
 #include "common/rpa.h"
 #include "common/assert.h"
-#include "conn_internal.h"
-#include "crypto.h"
-#include "ecc.h"
-#include "gatt_internal.h"
-#include "hci_core.h"
-#include "id.h"
-#include "iso_internal.h"
+
 #include "keys.h"
-#include "l2cap_internal.h"
 #include "monitor.h"
+#include "hci_core.h"
+#include "ecc.h"
+#include "id.h"
+#include "adv.h"
 #include "scan.h"
-#include "settings.h"
+
+#include "addr_internal.h"
+#include "conn_internal.h"
+#include "iso_internal.h"
+#include "l2cap_internal.h"
+#include "gatt_internal.h"
 #include "smp.h"
+#include "crypto.h"
+#include "settings.h"
 
 #if defined(CONFIG_BT_CLASSIC)
 #include "classic/br.h"
@@ -75,6 +67,7 @@
 #endif /* CONFIG_BT_DF */
 
 #define LOG_LEVEL CONFIG_BT_HCI_CORE_LOG_LEVEL
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(bt_hci_core);
 
 #if DT_HAS_CHOSEN(zephyr_bt_hci)
@@ -167,7 +160,8 @@ void bt_hci_cmd_state_set_init(struct net_buf *buf,
  * command complete or command status.
  */
 #define CMD_BUF_SIZE MAX(BT_BUF_EVT_RX_SIZE, BT_BUF_CMD_TX_SIZE)
-NET_BUF_POOL_FIXED_DEFINE(hci_cmd_pool, BT_BUF_CMD_TX_COUNT, CMD_BUF_SIZE, 0, NULL);
+NET_BUF_POOL_FIXED_DEFINE(hci_cmd_pool, BT_BUF_CMD_TX_COUNT,
+			  CMD_BUF_SIZE, sizeof(struct bt_buf_data), NULL);
 
 struct event_handler {
 	uint8_t event;
@@ -331,7 +325,9 @@ struct net_buf *bt_hci_cmd_create(uint16_t opcode, uint8_t param_len)
 
 	LOG_DBG("buf %p", buf);
 
-	net_buf_add_u8(buf, BT_HCI_H4_CMD);
+	net_buf_reserve(buf, BT_BUF_RESERVE);
+
+	bt_buf_set_type(buf, BT_BUF_CMD);
 
 	cmd(buf)->opcode = opcode;
 	cmd(buf)->sync = NULL;
@@ -598,6 +594,8 @@ static void hci_num_completed_packets(struct net_buf *buf)
 		while (count--) {
 			sys_snode_t *node;
 
+			k_sem_give(bt_conn_get_pkts(conn));
+
 			/* move the next TX context from the `pending` list to
 			 * the `complete` list.
 			 */
@@ -608,8 +606,6 @@ static void hci_num_completed_packets(struct net_buf *buf)
 				__ASSERT_NO_MSG(0);
 				break;
 			}
-
-			k_sem_give(bt_conn_get_pkts(conn));
 
 			sys_slist_append(&conn->tx_complete, node);
 
@@ -1017,7 +1013,7 @@ static void hci_disconn_complete(struct net_buf *buf)
 		 * If only for one connection session bond was set, clear keys
 		 * database row for this connection.
 		 */
-		if (conn->type == BT_CONN_TYPE_BR && conn->br.link_key != NULL &&
+		if (conn->type == BT_CONN_TYPE_BR &&
 		    atomic_test_and_clear_bit(conn->flags, BT_CONN_BR_NOBOND)) {
 			bt_keys_link_key_clear(conn->br.link_key);
 		}
@@ -2045,6 +2041,13 @@ static void unpair(uint8_t id, const bt_addr_le_t *addr)
 		bt_conn_unref(conn);
 	}
 
+	if (IS_ENABLED(CONFIG_BT_CLASSIC)) {
+		/* LE Public may indicate BR/EDR as well */
+		if (addr->type == BT_ADDR_LE_PUBLIC) {
+			bt_keys_link_key_clear_addr(&addr->a);
+		}
+	}
+
 	if (IS_ENABLED(CONFIG_BT_SMP)) {
 		if (!keys) {
 			keys = bt_keys_find_addr(id, addr);
@@ -2451,6 +2454,8 @@ static void hci_cmd_done(uint16_t opcode, uint8_t status, struct net_buf *evt_bu
 	 */
 	if (evt_buf != buf) {
 		net_buf_reset(buf);
+		bt_buf_set_type(buf, BT_BUF_EVT);
+		net_buf_reserve(buf, BT_BUF_RESERVE);
 		net_buf_add_mem(buf, evt_buf->data, evt_buf->len);
 	}
 
@@ -3799,7 +3804,6 @@ static void bt_dev_show_info(void)
 {
 	int i;
 
-	LOG_INF("HCI transport: %s", BT_HCI_NAME);
 	LOG_INF("Identity%s: %s", bt_dev.id_count > 1 ? "[0]" : "",
 		bt_addr_le_str(&bt_dev.id_addr[0]));
 
@@ -4041,12 +4045,9 @@ static int hci_init(void)
 
 int bt_send(struct net_buf *buf)
 {
-	/* Only peek at the type, since it needs to be retained for bt_hci_send() */
-	uint8_t type = buf->data[0];
+	LOG_DBG("buf %p len %u type %u", buf, buf->len, bt_buf_get_type(buf));
 
-	LOG_DBG("buf %p len %u type %u", buf, buf->len, type);
-
-	bt_monitor_send(bt_monitor_opcode(type, BT_MONITOR_TX), buf->data + 1, buf->len - 1);
+	bt_monitor_send(bt_monitor_opcode(buf), buf->data, buf->len);
 
 	return bt_hci_send(bt_dev.hci, buf);
 }
@@ -4077,9 +4078,6 @@ void hci_event_prio(struct net_buf *buf)
 	uint8_t evt_flags;
 
 	net_buf_simple_save(&buf->b, &state);
-
-	/* Remove buffer type byte */
-	net_buf_pull(buf, 1);
 
 	if (buf->len < sizeof(*hdr)) {
 		LOG_ERR("Invalid HCI event size (%u)", buf->len);
@@ -4116,22 +4114,19 @@ static void rx_queue_put(struct net_buf *buf)
 
 static int bt_recv_unsafe(struct net_buf *buf)
 {
-	/* Don't pull the type, snice we still need it in the rx queue */
-	uint8_t type = buf->data[0];
-
-	bt_monitor_send(bt_monitor_opcode(type, BT_MONITOR_RX), buf->data + 1, buf->len - 1);
+	bt_monitor_send(bt_monitor_opcode(buf), buf->data, buf->len);
 
 	LOG_DBG("buf %p len %u", buf, buf->len);
 
-	switch (type) {
+	switch (bt_buf_get_type(buf)) {
 #if defined(CONFIG_BT_CONN)
-	case BT_HCI_H4_ACL:
+	case BT_BUF_ACL_IN:
 		rx_queue_put(buf);
 		return 0;
 #endif /* BT_CONN */
-	case BT_HCI_H4_EVT:
+	case BT_BUF_EVT:
 	{
-		struct bt_hci_evt_hdr *hdr = (void *)(buf->data + 1);
+		struct bt_hci_evt_hdr *hdr = (void *)buf->data;
 		uint8_t evt_flags = bt_hci_evt_get_flags(hdr->evt);
 
 		if (evt_flags & BT_HCI_EVT_FLAG_RECV_PRIO) {
@@ -4145,12 +4140,12 @@ static int bt_recv_unsafe(struct net_buf *buf)
 		return 0;
 	}
 #if defined(CONFIG_BT_ISO)
-	case BT_HCI_H4_ISO:
+	case BT_BUF_ISO_IN:
 		rx_queue_put(buf);
 		return 0;
 #endif /* CONFIG_BT_ISO */
 	default:
-		LOG_ERR("Invalid buf type %u", type);
+		LOG_ERR("Invalid buf type %u", bt_buf_get_type(buf));
 		net_buf_unref(buf);
 		return -EINVAL;
 	}
@@ -4227,7 +4222,6 @@ static void init_work(struct k_work *work)
 
 static void rx_work_handler(struct k_work *work)
 {
-	uint8_t type;
 	int err;
 
 	struct net_buf *buf;
@@ -4238,26 +4232,24 @@ static void rx_work_handler(struct k_work *work)
 		return;
 	}
 
-	type = net_buf_pull_u8(buf);
+	LOG_DBG("buf %p type %u len %u", buf, bt_buf_get_type(buf), buf->len);
 
-	LOG_DBG("buf %p type %u len %u", buf, type, buf->len);
-
-	switch (type) {
+	switch (bt_buf_get_type(buf)) {
 #if defined(CONFIG_BT_CONN)
-	case BT_HCI_H4_ACL:
+	case BT_BUF_ACL_IN:
 		hci_acl(buf);
 		break;
 #endif /* CONFIG_BT_CONN */
 #if defined(CONFIG_BT_ISO)
-	case BT_HCI_H4_ISO:
+	case BT_BUF_ISO_IN:
 		hci_iso(buf);
 		break;
 #endif /* CONFIG_BT_ISO */
-	case BT_HCI_H4_EVT:
+	case BT_BUF_EVT:
 		hci_event(buf);
 		break;
 	default:
-		LOG_ERR("Unknown buf type %u", type);
+		LOG_ERR("Unknown buf type %u", bt_buf_get_type(buf));
 		net_buf_unref(buf);
 		break;
 	}

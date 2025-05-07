@@ -8,6 +8,9 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/fpga.h>
 #include <zephyr/drivers/gpio.h>
+#ifdef CONFIG_PINCTRL
+#include <zephyr/drivers/pinctrl.h>
+#endif /* CONFIG_PINCTRL */
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/crc.h>
@@ -46,6 +49,7 @@ struct fpga_ice40_config_bitbang {
 	volatile gpio_port_pins_t *set;
 	volatile gpio_port_pins_t *clear;
 	uint16_t mhz_delay_count;
+	const struct pinctrl_dev_config *pincfg;
 };
 
 /*
@@ -157,13 +161,6 @@ static int fpga_ice40_load(const struct device *dev, uint32_t *image_ptr, uint32
 	data->loaded = false;
 	fpga_ice40_crc_to_str(0, data->info);
 
-	ret = device_deinit(config->bus.bus);
-
-	if (ret != 0) {
-		LOG_ERR("failed to deinitialize the SPI device: %i", ret);
-		goto unlock;
-	}
-
 	LOG_DBG("Initializing GPIO");
 	ret = gpio_pin_configure_dt(&config->cdone, GPIO_INPUT) ||
 	      gpio_pin_configure_dt(&config->creset, GPIO_OUTPUT_HIGH) ||
@@ -226,14 +223,15 @@ static int fpga_ice40_load(const struct device *dev, uint32_t *image_ptr, uint32
 	fpga_ice40_crc_to_str(crc, data->info);
 	LOG_INF("Loaded image with CRC32 0x%08x", crc);
 
-	ret = device_init(config->bus.bus);
-
-	if (ret != 0) {
-		LOG_ERR("failed to reinitialize the SPI device: %i", ret);
-		goto unlock;
-	}
-
 unlock:
+	(void)gpio_pin_configure_dt(&config->creset, GPIO_OUTPUT_HIGH);
+	(void)gpio_pin_configure_dt(&config->bus.config.cs.gpio, GPIO_OUTPUT_HIGH);
+	(void)gpio_pin_configure_dt(&config_bitbang->clk, GPIO_DISCONNECTED);
+	(void)gpio_pin_configure_dt(&config_bitbang->pico, GPIO_DISCONNECTED);
+#ifdef CONFIG_PINCTRL
+	(void)pinctrl_apply_state(config->pincfg, PINCTRL_STATE_DEFAULT);
+#endif /* CONFIG_PINCTRL */
+
 	k_spin_unlock(&data->lock, key);
 
 	return ret;
@@ -248,18 +246,27 @@ static DEVICE_API(fpga, fpga_ice40_api) = {
 	.get_info = fpga_ice40_get_info,
 };
 
+#ifdef CONFIG_PINCTRL
+#define FPGA_ICE40_PINCTRL_DEFINE(inst) PINCTRL_DT_DEFINE(DT_INST_PARENT(inst))
+#define FPGA_ICE40_PINCTRL_GET(inst)    .pincfg = PINCTRL_DT_DEV_CONFIG_GET(DT_INST_PARENT(inst)),
+#else
+#define FPGA_ICE40_PINCTRL_DEFINE(inst)
+#define FPGA_ICE40_PINCTRL_GET(inst)
+#endif /* CONFIG_PINCTRL */
+
 #define FPGA_ICE40_DEFINE(inst)                                                                    \
 	BUILD_ASSERT(DT_INST_PROP(inst, mhz_delay_count) >= 0);                                    \
                                                                                                    \
+	FPGA_ICE40_PINCTRL_DEFINE(inst);                                                           \
 	static struct fpga_ice40_data fpga_ice40_data_##inst;                                      \
                                                                                                    \
 	static const struct fpga_ice40_config_bitbang fpga_ice40_config_bitbang_##inst = {         \
 		.clk = GPIO_DT_SPEC_INST_GET(inst, clk_gpios),                                     \
 		.pico = GPIO_DT_SPEC_INST_GET(inst, pico_gpios),                                   \
-		.set = (void *)DT_INST_PROP(inst, gpios_set_reg),                                  \
-		.clear = (void *)DT_INST_PROP(inst, gpios_clear_reg),                              \
+		.set = DT_INST_PROP(inst, gpios_set_reg),                                          \
+		.clear = DT_INST_PROP(inst, gpios_clear_reg),                                      \
 		.mhz_delay_count = DT_INST_PROP(inst, mhz_delay_count),                            \
-	};                                                                                         \
+		FPGA_ICE40_PINCTRL_GET(inst)};                                                     \
                                                                                                    \
 	FPGA_ICE40_CONFIG_DEFINE(inst, &fpga_ice40_config_bitbang_##inst);                         \
                                                                                                    \

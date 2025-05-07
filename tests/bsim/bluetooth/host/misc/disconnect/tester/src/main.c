@@ -5,7 +5,6 @@
  */
 
 #include <zephyr/kernel.h>
-#include <zephyr/sys/util.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/sys/__assert.h>
 
@@ -71,7 +70,9 @@ struct net_buf *bt_hci_cmd_create(uint16_t opcode, uint8_t param_len)
 
 	LOG_DBG("buf %p", buf);
 
-	net_buf_add_u8(buf, BT_HCI_H4_CMD);
+	net_buf_reserve(buf, BT_BUF_RESERVE);
+
+	bt_buf_set_type(buf, BT_BUF_CMD);
 
 	hdr = net_buf_add(buf, sizeof(*hdr));
 	hdr->opcode = sys_cpu_to_le16(opcode);
@@ -190,7 +191,8 @@ static void handle_att_write(struct net_buf *buf)
 
 	static uint8_t ccc_write[2] = {0x03, 0x00};
 
-	TEST_ASSERT(util_eq(buf->data, buf->len, ccc_write, sizeof(ccc_write)), "bad data\n");
+	TEST_ASSERT(buf->len == 2, "unexpected write length: %d", buf->len);
+	TEST_ASSERT(memcmp(buf->data, ccc_write, sizeof(ccc_write)) == 0, "bad data");
 
 	send_write_rsp();
 }
@@ -258,10 +260,9 @@ static void recv(struct net_buf *buf)
 {
 	LOG_HEXDUMP_DBG(buf->data, buf->len, "HCI RX");
 
-	uint8_t type = net_buf_pull_u8(buf);
 	uint8_t code = buf->data[0];
 
-	if (type == BT_HCI_H4_EVT) {
+	if (bt_buf_get_type(buf) == BT_BUF_EVT) {
 		switch (code) {
 		case BT_HCI_EVT_CMD_COMPLETE:
 		case BT_HCI_EVT_CMD_STATUS:
@@ -288,7 +289,7 @@ static void recv(struct net_buf *buf)
 		return;
 	}
 
-	if (type == BT_HCI_H4_ACL) {
+	if (bt_buf_get_type(buf) == BT_BUF_ACL_IN) {
 		handle_acl(buf);
 		net_buf_unref(buf);
 		return;
@@ -478,7 +479,7 @@ static int send_acl(struct net_buf *buf)
 	hdr->handle = sys_cpu_to_le16(bt_acl_handle_pack(conn_handle, flags));
 	hdr->len = sys_cpu_to_le16(buf->len - sizeof(*hdr));
 
-	net_buf_push_u8(buf, BT_HCI_H4_ACL);
+	bt_buf_set_type(buf, BT_BUF_ACL_OUT);
 
 	k_sem_take(&acl_pkts, K_FOREVER);
 

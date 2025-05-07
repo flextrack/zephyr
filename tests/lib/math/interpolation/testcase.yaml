@@ -2,6 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 tests:
-  utilities.math.interpolation:
+  math.interpolation:
     integration_platforms:
       - native_sim

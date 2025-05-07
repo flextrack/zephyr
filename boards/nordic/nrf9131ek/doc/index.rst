@@ -1,4 +1,7 @@
-.. zephyr:board:: nrf9131ek
+.. _nrf9131ek_nrf9131:
+
+nRF9131 EK
+##########
 
 Overview
 ********
@@ -23,6 +26,12 @@ Cortex-M33F CPU with ARMv8-M Security Extension and the following devices:
 * :abbr:`WDT (Watchdog Timer)`
 * :abbr:`IDAU (Implementation Defined Attribution Unit)`
 
+.. figure:: img/nrf9131ek_nrf9131.webp
+     :align: center
+     :alt: nRF9131 EK
+
+     nRF9131 EK (Credit: Nordic Semiconductor)
+
 The `Nordic Semiconductor TechDocs`_ will soon
 contain the processor's information and the datasheet.
 
@@ -37,7 +46,40 @@ is 32 MHz.
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The ``nrf9131ek/nrf9131`` board configuration supports the following
+hardware features:
+
++-----------+------------+----------------------+
+| Interface | Controller | Driver/Component     |
++===========+============+======================+
+| ADC       | on-chip    | adc                  |
++-----------+------------+----------------------+
+| CLOCK     | on-chip    | clock_control        |
++-----------+------------+----------------------+
+| FLASH     | on-chip    | flash                |
++-----------+------------+----------------------+
+| GPIO      | on-chip    | gpio                 |
++-----------+------------+----------------------+
+| I2C(M)    | on-chip    | i2c                  |
++-----------+------------+----------------------+
+| MPU       | on-chip    | arch/arm             |
++-----------+------------+----------------------+
+| NVIC      | on-chip    | arch/arm             |
++-----------+------------+----------------------+
+| PWM       | on-chip    | pwm                  |
++-----------+------------+----------------------+
+| RTC       | on-chip    | system clock         |
++-----------+------------+----------------------+
+| RTT       | Segger     | console              |
++-----------+------------+----------------------+
+| SPI(M/S)  | on-chip    | spi                  |
++-----------+------------+----------------------+
+| SPU       | on-chip    | system protection    |
++-----------+------------+----------------------+
+| UARTE     | on-chip    | serial               |
++-----------+------------+----------------------+
+| WDT       | on-chip    | watchdog             |
++-----------+------------+----------------------+
 
 Connections and IOs
 ===================
@@ -67,8 +109,6 @@ Security components
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 ``nrf9131ek/nrf9131`` supports the Armv8m Security Extension, and by default boots
 in the Secure state.

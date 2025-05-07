@@ -38,8 +38,6 @@ Supported Features
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Applications for the ``we_oceanus1ev`` board can be built the
 usual way (see :ref:`build_an_application`).
 

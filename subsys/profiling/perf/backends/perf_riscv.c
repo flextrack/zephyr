@@ -5,7 +5,6 @@
  */
 
 #include <zephyr/kernel.h>
-#include <zephyr/linker/linker-defs.h>
 
 static bool valid_stack(uintptr_t addr, k_tid_t current)
 {
@@ -15,7 +14,9 @@ static bool valid_stack(uintptr_t addr, k_tid_t current)
 
 static inline bool in_text_region(uintptr_t addr)
 {
-	return (addr >= (uintptr_t)__text_region_start) && (addr < (uintptr_t)__text_region_end);
+	extern uintptr_t __text_region_start, __text_region_end;
+
+	return (addr >= (uintptr_t)&__text_region_start) && (addr < (uintptr_t)&__text_region_end);
 }
 
 /*

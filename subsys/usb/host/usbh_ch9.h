@@ -52,10 +52,6 @@ int usbh_req_set_sfs_rwup(struct usb_device *const udev);
 
 int usbh_req_clear_sfs_rwup(struct usb_device *const udev);
 
-int usbh_req_set_sfs_halt(struct usb_device *const udev, const uint8_t ep);
-
-int usbh_req_clear_sfs_halt(struct usb_device *const udev, const uint8_t ep);
-
 int usbh_req_set_hcfs_ppwr(const struct usb_device *udev,
 			   const uint8_t port);
 

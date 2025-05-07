@@ -314,8 +314,7 @@ static void init_net(struct log_backend const *const backend)
 {
 	ARG_UNUSED(backend);
 
-	if (sizeof(CONFIG_LOG_BACKEND_NET_SERVER) != 1) {
-		/* Non empty address, set server via Kconfig defaults */
+	if (strlen(CONFIG_LOG_BACKEND_NET_SERVER) != 0) {
 		const char *server = CONFIG_LOG_BACKEND_NET_SERVER;
 		bool ret;
 

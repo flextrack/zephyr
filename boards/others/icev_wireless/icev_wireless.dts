@@ -97,7 +97,3 @@
 &esp32_bt_hci {
 	status = "okay";
 };
-
-&wifi {
-	status = "okay";
-};

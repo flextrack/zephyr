@@ -25,7 +25,6 @@ supported:
   - i3c
   - pwm
   - regulator
-  - rtc
   - sdhc
   - spi
   - usb_device

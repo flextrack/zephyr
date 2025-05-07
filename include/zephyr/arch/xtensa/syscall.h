@@ -30,26 +30,6 @@
 extern "C" {
 #endif
 
-/* When syscall assembly is executed, the EPC points to the syscall
- * instruction, and we have to manually advance it so we will
- * return to the instruction after syscall to continue execution.
- * However, with zero-overhead loops and the syscall instruction is
- * the last instruction, this simple addition does not work as it
- * would point past the loop and would have skipped the loop.
- * Because of this, syscall entrance would need to look at the loop
- * registers and set the PC back to the beginning of loop if we are
- * still looping. Assuming most of the syscalls are not inside
- * loops, the extra handling code consumes quite a few cycles.
- * To workaround this, simply adds a nop after syscall so we no
- * longer have to deal with loops at syscall entrance, and that
- * a nop is faster than all the code to manipulate loop registers.
- */
-#ifdef XCHAL_HAVE_LOOPS
-#define XTENSA_SYSCALL_ASM		"syscall; nop;"
-#else
-#define XTENSA_SYSCALL_ASM		"syscall"
-#endif
-
 #ifdef CONFIG_XTENSA_SYSCALL_USE_HELPER
 uintptr_t xtensa_syscall_helper_args_6(uintptr_t arg1, uintptr_t arg2,
 				       uintptr_t arg3, uintptr_t arg4,
@@ -95,7 +75,7 @@ static SYSINL uintptr_t arch_syscall_invoke6(uintptr_t arg1, uintptr_t arg2,
 	register uintptr_t a8 __asm__("%a8") = arg5;
 	register uintptr_t a9 __asm__("%a9") = arg6;
 
-	__asm__ volatile(XTENSA_SYSCALL_ASM
+	__asm__ volatile("syscall\n\t"
 			 : "=r" (a2)
 			 : "r" (a2), "r" (a6), "r" (a3), "r" (a4),
 			   "r" (a5), "r" (a8), "r" (a9)
@@ -119,7 +99,7 @@ static SYSINL uintptr_t arch_syscall_invoke5(uintptr_t arg1, uintptr_t arg2,
 	register uintptr_t a5 __asm__("%a5") = arg4;
 	register uintptr_t a8 __asm__("%a8") = arg5;
 
-	__asm__ volatile(XTENSA_SYSCALL_ASM
+	__asm__ volatile("syscall\n\t"
 			 : "=r" (a2)
 			 : "r" (a2), "r" (a6), "r" (a3), "r" (a4),
 			   "r" (a5), "r" (a8)
@@ -142,7 +122,7 @@ static SYSINL uintptr_t arch_syscall_invoke4(uintptr_t arg1, uintptr_t arg2,
 	register uintptr_t a4 __asm__("%a4") = arg3;
 	register uintptr_t a5 __asm__("%a5") = arg4;
 
-	__asm__ volatile(XTENSA_SYSCALL_ASM
+	__asm__ volatile("syscall\n\t"
 			 : "=r" (a2)
 			 : "r" (a2), "r" (a6), "r" (a3), "r" (a4),
 			   "r" (a5)
@@ -160,7 +140,7 @@ static inline uintptr_t arch_syscall_invoke3(uintptr_t arg1, uintptr_t arg2,
 	register uintptr_t a3 __asm__("%a3") = arg2;
 	register uintptr_t a4 __asm__("%a4") = arg3;
 
-	__asm__ volatile(XTENSA_SYSCALL_ASM
+	__asm__ volatile("syscall\n\t"
 			 : "=r" (a2)
 			 : "r" (a2), "r" (a6), "r" (a3), "r" (a4)
 			 : "memory");
@@ -175,7 +155,7 @@ static inline uintptr_t arch_syscall_invoke2(uintptr_t arg1, uintptr_t arg2,
 	register uintptr_t a6 __asm__("%a6") = arg1;
 	register uintptr_t a3 __asm__("%a3") = arg2;
 
-	__asm__ volatile(XTENSA_SYSCALL_ASM
+	__asm__ volatile("syscall\n\t"
 			 : "=r" (a2)
 			 : "r" (a2), "r" (a6), "r" (a3)
 			 : "memory");
@@ -188,7 +168,7 @@ static inline uintptr_t arch_syscall_invoke1(uintptr_t arg1, uintptr_t call_id)
 	register uintptr_t a2 __asm__("%a2") = call_id;
 	register uintptr_t a6 __asm__("%a6") = arg1;
 
-	__asm__ volatile(XTENSA_SYSCALL_ASM
+	__asm__ volatile("syscall\n\t"
 			 : "=r" (a2)
 			 : "r" (a2), "r" (a6)
 			 : "memory");
@@ -200,7 +180,7 @@ static inline uintptr_t arch_syscall_invoke0(uintptr_t call_id)
 {
 	register uintptr_t a2 __asm__("%a2") = call_id;
 
-	__asm__ volatile(XTENSA_SYSCALL_ASM
+	__asm__ volatile("syscall\n\t"
 			 : "=r" (a2)
 			 : "r" (a2)
 			 : "memory");

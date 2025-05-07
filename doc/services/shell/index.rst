@@ -110,7 +110,7 @@ Details on the configuration settings are captured in the following files:
 - :zephyr_file:`snippets/nus-console/nus-console.conf`.
 - :zephyr_file:`snippets/nus-console/nus-console.overlay`.
 
-Segger RTT
+Segget RTT
 ==========
 
 To configure Segger RTT backend, add the following configurations to your build:

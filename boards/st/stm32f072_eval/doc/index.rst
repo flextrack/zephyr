@@ -109,8 +109,6 @@ Default settings are 115200 8N1.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 STM32F072-EVAL Discovery kit includes an ST-LINK/V2 embedded debug tool interface.
 
 Applications for the ``stm32f072_eval`` board configuration can be built and

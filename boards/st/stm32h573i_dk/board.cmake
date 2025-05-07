@@ -10,8 +10,6 @@ endif()
 
 board_runner_args(pyocd "--target=stm32h573iikx")
 
-board_runner_args(probe_rs "--chip=STM32H573II")
-
 board_runner_args(openocd "--tcl-port=6666")
 board_runner_args(openocd --cmd-pre-init "gdb_report_data_abort enable")
 board_runner_args(openocd "--no-halt")
@@ -19,6 +17,5 @@ board_runner_args(openocd "--no-halt")
 # keep first
 include(${ZEPHYR_BASE}/boards/common/stm32cubeprogrammer.board.cmake)
 include(${ZEPHYR_BASE}/boards/common/pyocd.board.cmake)
-include(${ZEPHYR_BASE}/boards/common/probe-rs.board.cmake)
 include(${ZEPHYR_BASE}/boards/common/openocd.board.cmake)
 # FIXME: official openocd runner not yet available.

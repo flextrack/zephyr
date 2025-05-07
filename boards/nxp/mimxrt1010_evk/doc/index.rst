@@ -60,15 +60,44 @@ This platform has the following external memories:
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The mimxrt1010_evk board configuration supports the hardware features listed
+below.  For additional features not yet supported, please also refer to the
+:zephyr:board:`mimxrt1064_evk` , which is the superset board in NXP's i.MX RT10xx family.
+NXP prioritizes enabling the superset board with NXP's Full Platform Support for
+Zephyr.  Therefore, the mimxrt1064_evk board may have additional features
+already supported, which can also be re-used on this mimxrt1010_evk board:
 
-.. note::
++-----------+------------+-------------------------------------+
+| Interface | Controller | Driver/Component                    |
++===========+============+=====================================+
+| NVIC      | on-chip    | nested vector interrupt controller  |
++-----------+------------+-------------------------------------+
+| SYSTICK   | on-chip    | systick                             |
++-----------+------------+-------------------------------------+
+| GPIO      | on-chip    | gpio                                |
++-----------+------------+-------------------------------------+
+| SPI       | on-chip    | spi                                 |
++-----------+------------+-------------------------------------+
+| I2C       | on-chip    | i2c                                 |
++-----------+------------+-------------------------------------+
+| UART      | on-chip    | serial port-polling;                |
+|           |            | serial port-interrupt               |
++-----------+------------+-------------------------------------+
+| USB       | on-chip    | USB device                          |
++-----------+------------+-------------------------------------+
+| ADC       | on-chip    | adc                                 |
++-----------+------------+-------------------------------------+
+| GPT       | on-chip    | gpt                                 |
++-----------+------------+-------------------------------------+
+| TRNG      | on-chip    | entropy                             |
++-----------+------------+-------------------------------------+
+| PIT       | on-chip    | pit                                 |
++-----------+------------+-------------------------------------+
 
-   For additional features not yet supported, please also refer to the
-   :zephyr:board:`mimxrt1064_evk`, which is the superset board in NXP's i.MX RT10xx family.
-   NXP prioritizes enabling the superset board with NXP's Full Platform Support for
-   Zephyr.  Therefore, the mimxrt1064_evk board may have additional features
-   already supported, which can also be re-used on this mimxrt1010_evk board:
+The default configuration can be found in
+:zephyr_file:`boards/nxp/mimxrt1010_evk/mimxrt1010_evk_defconfig`
+
+Other hardware features are not currently supported by the port.
 
 Connections and I/Os
 ====================
@@ -122,8 +151,6 @@ and the remaining are not used.
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 This board supports 3 debug host tools. Please install your preferred host
 tool, then follow the instructions in `Configuring a Debug Probe`_ to

@@ -15,4 +15,3 @@ supported:
   - usb_device
   - netif:openthread
 vendor: nordic
-sysbuild: true

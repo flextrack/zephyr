@@ -207,8 +207,6 @@ Rather, users can use the available USB port (CN12) to run virtual com port
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Applications for the ``stm32wb5mmg`` board configuration can be built the
 usual way (see :ref:`build_an_application`).
 

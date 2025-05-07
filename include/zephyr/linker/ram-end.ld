@@ -1,6 +1,5 @@
-/* Please keep in sync with cmake/linker_script/common/ram-end.cmake */
-
-/* Added after the very last allocation that might land in RAM to define the various
+/*
+ * Added after the very last allocation that might land in RAM to define the various
  * end-of-used-memory symbols
  */
 

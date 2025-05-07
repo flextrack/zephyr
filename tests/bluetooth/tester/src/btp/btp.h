@@ -7,10 +7,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef TESTS_BLUETOOTH_TESTER_SRC_BTP_
-#define TESTS_BLUETOOTH_TESTER_SRC_BTP_
-
-#include <stdint.h>
+#include <zephyr/sys/util.h>
+#include <zephyr/bluetooth/addr.h>
 
 #include "bttester.h"
 #include "btp_core.h"
@@ -44,8 +42,6 @@
 
 #define BTP_MTU 1024
 #define BTP_DATA_MAX_SIZE (BTP_MTU - sizeof(struct btp_hdr))
-
-#define BTP_BR_ADDRESS_TYPE 0xe0
 
 #define BTP_INDEX_NONE		0xff
 #define BTP_INDEX		0x00
@@ -91,8 +87,6 @@
 
 #define BTP_STATUS_VAL(err) (err) ? BTP_STATUS_FAILED : BTP_STATUS_SUCCESS
 
-#define BTP_EVENT_OPCODE 0x80
-
 /* TODO indicate delay response, should be removed when all commands are
  * converted to cmd+status+ev pattern
  */
@@ -110,5 +104,3 @@ struct btp_hdr {
 struct btp_status {
 	uint8_t code;
 } __packed;
-
-#endif /* TESTS_BLUETOOTH_TESTER_SRC_BTP_ */

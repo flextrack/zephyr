@@ -12,20 +12,13 @@
 #include <errno.h>
 #include <reg/fsmbm.h>
 
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(i2c_ene, CONFIG_I2C_LOG_LEVEL);
-
-#include "i2c-priv.h"
-
 struct i2c_kb1200_config {
 	struct fsmbm_regs *fsmbm;
-	uint32_t clock_freq;
 	const struct pinctrl_dev_config *pcfg;
 };
 
 struct i2c_kb1200_data {
-	struct k_sem lock;
-	struct k_sem wait;
+	struct k_sem mutex;
 	volatile uint8_t *msg_buf;
 	volatile uint32_t msg_len;
 	volatile uint8_t msg_flags;
@@ -46,7 +39,6 @@ static void i2c_kb1200_isr(const struct device *dev)
 			uint32_t remain = data->msg_len - data->index;
 			uint32_t send_bytes =
 				remain > FSMBM_BUFFER_SIZE ? FSMBM_BUFFER_SIZE : remain;
-
 			memcpy((void *)&config->fsmbm->FSMBMDAT[0],
 			       (void *)&data->msg_buf[data->index], send_bytes);
 			data->index += send_bytes;
@@ -60,7 +52,7 @@ static void i2c_kb1200_isr(const struct device *dev)
 		} else if (config->fsmbm->FSMBMPF & FSMBM_COMPLETE_EVENT) {
 			/* complete */
 			if (((config->fsmbm->FSMBMSTS & FSMBM_STS_MASK) == FSMBM_SMBUS_BUSY) &&
-			    ((config->fsmbm->FSMBMFRT & FRT_STOP) == FRT_NONE)) {
+			    ((config->fsmbm->FSMBMFRT & ___STOP) == ___NONE)) {
 				/* while packet finish without STOP, the error message is
 				 * FSMBM_SMBUS_BUSY
 				 */
@@ -69,12 +61,10 @@ static void i2c_kb1200_isr(const struct device *dev)
 				data->err_code = config->fsmbm->FSMBMSTS & FSMBM_STS_MASK;
 			}
 			data->state = STATE_COMPLETE;
-			k_sem_give(&data->wait);
 			config->fsmbm->FSMBMPF = FSMBM_COMPLETE_EVENT;
 		} else {
 			data->err_code = config->fsmbm->FSMBMSTS & FSMBM_STS_MASK;
 			data->state = STATE_COMPLETE;
-			k_sem_give(&data->wait);
 		}
 	} else if (data->state == STATE_RECEIVING) {
 		uint32_t remain = data->msg_len - data->index;
@@ -99,7 +89,7 @@ static void i2c_kb1200_isr(const struct device *dev)
 		} else if (config->fsmbm->FSMBMPF & FSMBM_COMPLETE_EVENT) {
 			/* complete */
 			if (((config->fsmbm->FSMBMSTS & FSMBM_STS_MASK) == FSMBM_SMBUS_BUSY) &&
-			    ((config->fsmbm->FSMBMFRT & FRT_STOP) == FRT_NONE)) {
+			    ((config->fsmbm->FSMBMFRT & ___STOP) == ___NONE)) {
 				/* while packet finish without STOP, the error message is
 				 * FSMBM_SMBUS_BUSY
 				 */
@@ -108,16 +98,13 @@ static void i2c_kb1200_isr(const struct device *dev)
 				data->err_code = config->fsmbm->FSMBMSTS & FSMBM_STS_MASK;
 			}
 			data->state = STATE_COMPLETE;
-			k_sem_give(&data->wait);
 			config->fsmbm->FSMBMPF = FSMBM_COMPLETE_EVENT;
 		} else {
 			data->err_code = config->fsmbm->FSMBMSTS & FSMBM_STS_MASK;
 			data->state = STATE_COMPLETE;
-			k_sem_give(&data->wait);
 		}
 	} else if (data->state == STATE_COMPLETE) {
 		config->fsmbm->FSMBMPF = (FSMBM_COMPLETE_EVENT | FSMBM_BLOCK_FINISH_EVENT);
-		k_sem_give(&data->wait);
 	}
 }
 
@@ -125,16 +112,14 @@ static int i2c_kb1200_poll_write(const struct device *dev, struct i2c_msg msg, u
 {
 	const struct i2c_kb1200_config *config = dev->config;
 	struct i2c_kb1200_data *data = dev->data;
-	uint32_t send_bytes;
-	int ret;
+	uint8_t send_bytes;
 
-	k_sem_reset(&data->wait);
 	if (msg.flags & I2C_MSG_STOP) {
 		/* No CMD, No CNT, No PEC, with STOP*/
-		config->fsmbm->FSMBMFRT = FRT_STOP;
+		config->fsmbm->FSMBMFRT = ___STOP;
 	} else {
 		/* No CMD, No CNT, No PEC, no STOP*/
-		config->fsmbm->FSMBMFRT = FRT_NONE;
+		config->fsmbm->FSMBMFRT = ___NONE;
 	}
 	data->msg_len = msg.len;
 	data->msg_buf = msg.buf;
@@ -150,7 +135,7 @@ static int i2c_kb1200_poll_write(const struct device *dev, struct i2c_msg msg, u
 	data->state = STATE_SENDING;
 
 	config->fsmbm->FSMBMCMD = 0;
-	config->fsmbm->FSMBMADR = (addr << 1) | FSMBM_WRITE;
+	config->fsmbm->FSMBMADR = (addr & ~BIT(0)) | FSMBM_WRITE;
 	config->fsmbm->FSMBMPF = (FSMBM_COMPLETE_EVENT | FSMBM_BLOCK_FINISH_EVENT);
 	/* If data over bufferSize increase 1 to force continue transmit */
 	if (msg.len >= (FSMBM_BUFFER_SIZE + 1)) {
@@ -160,19 +145,15 @@ static int i2c_kb1200_poll_write(const struct device *dev, struct i2c_msg msg, u
 	}
 	config->fsmbm->FSMBMIE = (FSMBM_COMPLETE_EVENT | FSMBM_BLOCK_FINISH_EVENT);
 	config->fsmbm->FSMBMPRTC_P = FLEXIBLE_PROTOCOL;
-
-	/* Wait until ISR or timeout */
-	ret = k_sem_take(&data->wait, K_MSEC(FSMBM_MAX_TIMEOUT));
-	if (ret == -EAGAIN) {
-		data->err_code |= FSMBM_SDA_TIMEOUT;
+	while (data->state != STATE_COMPLETE) {
+		;
 	}
 	data->state = STATE_IDLE;
-	if (data->err_code) {
+	if (data->err_code != 0) {
 		/* reset HW  */
 		config->fsmbm->FSMBMCFG |= FSMBM_HW_RESET;
 		return data->err_code;
 	}
-
 	return 0;
 }
 
@@ -180,18 +161,13 @@ static int i2c_kb1200_poll_read(const struct device *dev, struct i2c_msg msg, ui
 {
 	const struct i2c_kb1200_config *config = dev->config;
 	struct i2c_kb1200_data *data = dev->data;
-	int ret;
 
-	k_sem_reset(&data->wait);
-	if ((msg.flags & I2C_MSG_RESTART) && !(msg.flags & I2C_MSG_STOP)) {
-		LOG_ERR("ENE i2c format not support.");
-	}
 	if (msg.flags & I2C_MSG_STOP) {
 		/* No CMD, No CNT, No PEC, with STOP*/
-		config->fsmbm->FSMBMFRT = FRT_STOP;
+		config->fsmbm->FSMBMFRT = ___STOP;
 	} else {
 		/* No CMD, No CNT, No PEC, no STOP*/
-		config->fsmbm->FSMBMFRT = FRT_NONE;
+		config->fsmbm->FSMBMFRT = ___NONE;
 	}
 	data->msg_len = msg.len;
 	data->msg_buf = msg.buf;
@@ -202,7 +178,7 @@ static int i2c_kb1200_poll_read(const struct device *dev, struct i2c_msg msg, ui
 	data->state = STATE_RECEIVING;
 
 	config->fsmbm->FSMBMCMD = 0;
-	config->fsmbm->FSMBMADR = (addr << 1) | FSMBM_READ;
+	config->fsmbm->FSMBMADR = (addr & ~BIT(0)) | FSMBM_READ;
 	config->fsmbm->FSMBMPF = (FSMBM_COMPLETE_EVENT | FSMBM_BLOCK_FINISH_EVENT);
 	/* If data over bufferSize increase 1 to force continue receive */
 	if (msg.len >= (FSMBM_BUFFER_SIZE + 1)) {
@@ -212,20 +188,15 @@ static int i2c_kb1200_poll_read(const struct device *dev, struct i2c_msg msg, ui
 	}
 	config->fsmbm->FSMBMIE = (FSMBM_COMPLETE_EVENT | FSMBM_BLOCK_FINISH_EVENT);
 	config->fsmbm->FSMBMPRTC_P = FLEXIBLE_PROTOCOL;
-
-	/* Wait until ISR or timeout */
-	ret = k_sem_take(&data->wait, K_MSEC(FSMBM_MAX_TIMEOUT));
-	if (ret == -EAGAIN) {
-		data->err_code |= FSMBM_SDA_TIMEOUT;
+	while (data->state != STATE_COMPLETE) {
+		;
 	}
 	data->state = STATE_IDLE;
-
-	if (data->err_code) {
+	if (data->err_code != 0) {
 		/* reset HW  */
 		config->fsmbm->FSMBMCFG |= FSMBM_HW_RESET;
 		return data->err_code;
 	}
-
 	return 0;
 }
 
@@ -233,7 +204,6 @@ static int i2c_kb1200_poll_read(const struct device *dev, struct i2c_msg msg, ui
 static int i2c_kb1200_configure(const struct device *dev, uint32_t dev_config)
 {
 	const struct i2c_kb1200_config *config = dev->config;
-	uint32_t speed;
 
 	if (!(dev_config & I2C_MODE_CONTROLLER)) {
 		return -ENOTSUP;
@@ -243,7 +213,7 @@ static int i2c_kb1200_configure(const struct device *dev, uint32_t dev_config)
 		return -ENOTSUP;
 	}
 
-	speed = I2C_SPEED_GET(dev_config);
+	uint32_t speed = I2C_SPEED_GET(dev_config);
 
 	switch (speed) {
 	case I2C_SPEED_STANDARD:
@@ -272,7 +242,7 @@ static int i2c_kb1200_get_config(const struct device *dev, uint32_t *dev_config)
 	const struct i2c_kb1200_config *config = dev->config;
 
 	if ((config->fsmbm->FSMBMCFG & FSMBM_FUNCTION_ENABLE) == 0x00) {
-		LOG_ERR("Cannot find i2c controller on 0x%p!", config->fsmbm);
+		printk("Cannot find i2c controller on 0x%p!\n", config->fsmbm);
 		return -EIO;
 	}
 
@@ -281,8 +251,6 @@ static int i2c_kb1200_get_config(const struct device *dev, uint32_t *dev_config)
 		*dev_config = I2C_MODE_CONTROLLER | I2C_SPEED_SET(I2C_SPEED_STANDARD);
 		break;
 	case FSMBM_CLK_400K:
-	case FSMBM_CLK_500K:
-	case FSMBM_CLK_666K:
 		*dev_config = I2C_MODE_CONTROLLER | I2C_SPEED_SET(I2C_SPEED_FAST);
 		break;
 	case FSMBM_CLK_1M:
@@ -299,27 +267,27 @@ static int i2c_kb1200_transfer(const struct device *dev, struct i2c_msg *msgs, u
 			       uint16_t addr)
 {
 	struct i2c_kb1200_data *data = dev->data;
-	int ret = 0;
+	int ret;
 
-	/* lock */
-	k_sem_take(&data->lock, K_FOREVER);
+	/* get the mutex */
+	k_sem_take(&data->mutex, K_FOREVER);
 	for (int i = 0U; i < num_msgs; i++) {
 		if ((msgs[i].flags & I2C_MSG_RW_MASK) == I2C_MSG_WRITE) {
 			ret = i2c_kb1200_poll_write(dev, msgs[i], addr);
 			if (ret) {
-				ret = -EIO;
+				printk("%s Write error: 0x%X\n", dev->name, ret);
 				break;
 			}
 		} else {
 			ret = i2c_kb1200_poll_read(dev, msgs[i], addr);
 			if (ret) {
-				ret = -EIO;
+				printk("%s Read error: 0x%X\n", dev->name, ret);
 				break;
 			}
 		}
 	}
-	/* release the lock */
-	k_sem_give(&data->lock);
+	/* release the mutex */
+	k_sem_give(&data->mutex);
 
 	return ret;
 }
@@ -364,23 +332,14 @@ static int i2c_kb1200_init(const struct device *dev)
 	int ret;
 	const struct i2c_kb1200_config *config = dev->config;
 	struct i2c_kb1200_data *data = dev->data;
-	uint32_t bitrate_cfg;
 
 	ret = pinctrl_apply_state(config->pcfg, PINCTRL_STATE_DEFAULT);
 	if (ret != 0) {
 		return ret;
 	}
 
-	bitrate_cfg = i2c_map_dt_bitrate(config->clock_freq);
-	if (!bitrate_cfg) {
-		return -EINVAL;
-	}
-
-	i2c_kb1200_configure(dev, bitrate_cfg | I2C_MODE_CONTROLLER);
-
-	k_sem_init(&data->wait, 0, 1);
-	/* init lock */
-	k_sem_init(&data->lock, 1, 1);
+	/* init mutex */
+	k_sem_init(&data->mutex, 1, 1);
 	kb1200_fsmbm_irq_init();
 
 	return 0;
@@ -391,11 +350,10 @@ static int i2c_kb1200_init(const struct device *dev)
 	static struct i2c_kb1200_data i2c_kb1200_data_##inst;                                      \
 	static const struct i2c_kb1200_config i2c_kb1200_config_##inst = {                         \
 		.fsmbm = (struct fsmbm_regs *)DT_INST_REG_ADDR(inst),                              \
-		.clock_freq = DT_INST_PROP(inst, clock_frequency),                                 \
 		.pcfg = PINCTRL_DT_INST_DEV_CONFIG_GET(inst),                                      \
 	};                                                                                         \
 	I2C_DEVICE_DT_INST_DEFINE(inst, &i2c_kb1200_init, NULL, &i2c_kb1200_data_##inst,           \
-				  &i2c_kb1200_config_##inst, PRE_KERNEL_1,                         \
-				  CONFIG_KERNEL_INIT_PRIORITY_DEVICE, &i2c_kb1200_api);
+			      &i2c_kb1200_config_##inst, PRE_KERNEL_1,                             \
+			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE, &i2c_kb1200_api);
 
 DT_INST_FOREACH_STATUS_OKAY(I2C_KB1200_DEVICE)

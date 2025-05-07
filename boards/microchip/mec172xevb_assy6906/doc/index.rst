@@ -230,8 +230,6 @@ NOTE: ``JP121 3-4`` on base board also needs to be loaded.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Setup
 =====
 

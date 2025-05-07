@@ -13,10 +13,10 @@ common:
     - img_mgmt
   build_only: false
 tests:
-  mgmt.mcumgr.img.mgmt.slot.info: {}
-  mgmt.mcumgr.img.mgmt.slot.info.too.large:
+  img.mgmt.slot.info: {}
+  img.mgmt.slot.info.too.large:
     extra_args:
       - FILE_SUFFIX=too_large
-  mgmt.mcumgr.slot.info.dual.slot:
+  img.mgmt.slot.info.dual.slot:
     extra_args:
       - FILE_SUFFIX=dual_slot

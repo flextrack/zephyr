@@ -81,9 +81,8 @@ static int spi_cc13xx_cc26xx_configure(const struct device *dev,
 		return -EINVAL;
 	}
 
-	if (config->frequency < CPU_FREQ / (254 * (255 + 1))) {
-		LOG_ERR("Frequencies lower than %d Hz are not supported",
-			CPU_FREQ / (254 * (255 + 1)));
+	if (config->frequency < 2000000) {
+		LOG_ERR("Frequencies lower than 2 MHz are not supported");
 		return -EINVAL;
 	}
 

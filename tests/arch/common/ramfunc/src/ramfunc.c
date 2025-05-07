@@ -53,3 +53,6 @@ ZTEST(ramfunc, test_ramfunc)
 	zassert_true(post_flag == 1,
 		"ram_function() execution failed.");
 }
+/**
+ * @}
+ */

@@ -86,8 +86,6 @@ board including `pinouts`_ and the `schematic`_.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Prerequisites
 =============
 

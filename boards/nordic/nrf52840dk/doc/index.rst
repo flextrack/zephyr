@@ -1,4 +1,7 @@
-.. zephyr:board:: nrf52840dk
+.. _nrf52840dk_nrf52840:
+
+nRF52840 DK
+###########
 
 Overview
 ********
@@ -22,6 +25,12 @@ Nordic Semiconductor nRF52840 ARM Cortex-M4F CPU and the following devices:
 * :abbr:`USB (Universal Serial Bus)`
 * :abbr:`WDT (Watchdog Timer)`
 
+.. figure:: img/nrf52840dk_nrf52840.jpg
+     :align: center
+     :alt: nRF52840 DK
+
+     nRF52840 DK (Credit: Nordic Semiconductor)
+
 More information about the board can be found at the `nRF52840 DK website`_.
 `nRF52840 Product Specification`_ contains the processor's information
 and the datasheet.
@@ -36,8 +45,45 @@ is 32.768 kHz. The frequency of the main clock is 32 MHz.
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The ``nrf52840dk/nrf52840`` board configuration supports the following
+hardware features:
 
++-----------+------------+----------------------+
+| Interface | Controller | Driver/Component     |
++===========+============+======================+
+| ADC       | on-chip    | adc                  |
++-----------+------------+----------------------+
+| CLOCK     | on-chip    | clock_control        |
++-----------+------------+----------------------+
+| FLASH     | on-chip    | flash                |
++-----------+------------+----------------------+
+| GPIO      | on-chip    | gpio                 |
++-----------+------------+----------------------+
+| I2C(M)    | on-chip    | i2c                  |
++-----------+------------+----------------------+
+| MPU       | on-chip    | arch/arm             |
++-----------+------------+----------------------+
+| NVIC      | on-chip    | arch/arm             |
++-----------+------------+----------------------+
+| PWM       | on-chip    | pwm                  |
++-----------+------------+----------------------+
+| RADIO     | on-chip    | Bluetooth,           |
+|           |            | ieee802154           |
++-----------+------------+----------------------+
+| RTC       | on-chip    | system clock         |
++-----------+------------+----------------------+
+| RTT       | Segger     | console              |
++-----------+------------+----------------------+
+| SPI(M/S)  | on-chip    | spi                  |
++-----------+------------+----------------------+
+| UART      | on-chip    | serial               |
++-----------+------------+----------------------+
+| USB       | on-chip    | usb                  |
++-----------+------------+----------------------+
+| WDT       | on-chip    | watchdog             |
++-----------+------------+----------------------+
+
+Other hardware features have not been enabled yet for this board.
 See `nRF52840 DK website`_ and `nRF52840 DK Hardware guide`_
 for a complete list of nRF52840 Development Kit board hardware features.
 
@@ -63,8 +109,6 @@ Push buttons
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 Applications for the ``nrf52840dk/nrf52840`` board configuration can be
 built, flashed, and debugged in the usual way. See
@@ -172,15 +216,27 @@ in under-10KHz applications. They are not suitable for 115200 speed of UART.
 .. _nrf52840dk_nrf52811:
 
 nRF52811 emulation on nRF52840 DK
-*********************************
+#################################
+
+Overview
+********
 
 The ``nrf52840dk/nrf52811`` board variant is a modified version of the
-:zephyr:board:`nrf52840dk` that enforces the limitations imposed by the nRF52811
+:ref:`nrf52840dk_nrf52840` that enforces the limitations imposed by the nRF52811
 IC, which is a variant of the original nRF52840. Since Nordic does not offer a
 development kit for the nRF52811 you can use this board to develop for this IC
 while using the nRF52840 Development Kit (PCA10056).
 
-See `nRF52811 website`_ for the official reference on the IC itself.
+See :ref:`nrf52840dk_nrf52840` for more information about the development board
+and `nRF52811 website`_ for the official reference on the IC itself.
+
+
+References
+**********
+
+.. target-notes::
+
+.. _nRF52811 website: https://www.nordicsemi.com/Products/Low-power-short-range-wireless/nRF52811
 
 References
 **********

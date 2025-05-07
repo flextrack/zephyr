@@ -30,7 +30,7 @@ static struct k_thread tthread[THREADS_NUM];
 static char th_buffer[THREADS_NUM][DIGITS_NUM + 1];
 static atomic_t th_counter = THREADS_NUM;
 
-K_SEM_DEFINE(main_sem, 0, 1);
+struct k_sem main_sem;
 
 void test_thread(void *arg1, void *arg2, void *arg3)
 {
@@ -85,6 +85,11 @@ int main(void)
 {
 	uint32_t start_time, stop_time, cycles_spent, nanoseconds_spent;
 	int i;
+
+	if (k_sem_init(&main_sem, 0, 1)) {
+		printk("Failed initialization!\n");
+		return -1;
+	}
 
 	printk("Calculate first %d digits of Pi independently by %d threads.\n",
 	       DIGITS_NUM, THREADS_NUM);

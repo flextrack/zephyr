@@ -142,12 +142,10 @@ The Swift ID is not the same as the Zephyr driver ID.
 +-----------+---------------+----------+---------------+----------+---------------+
 
 
-Programming and Flashing
-************************
+Programming and Flash
+*************************
 
-.. zephyr:board-supported-runners::
-
-Build applications as usual (see :ref:`build_an_application` for more details).
+Build  applications as usual (see :ref:`build_an_application` for more details).
 
 Configuring a Debug Probe
 =========================

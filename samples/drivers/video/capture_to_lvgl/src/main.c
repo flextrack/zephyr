@@ -106,17 +106,21 @@ int main(void)
 		video_enqueue(video_dev, VIDEO_EP_OUT, buffers[i]);
 	}
 
-	/* Set controls */
-	struct video_control ctrl = {.id = VIDEO_CID_HFLIP, .val = 1};
-
-	if (IS_ENABLED(CONFIG_VIDEO_HFLIP)) {
-		video_set_ctrl(video_dev, &ctrl);
+#ifdef CONFIG_VIDEO_HFLIP
+	/* Video flip image horizontally */
+	if (video_set_ctrl(video_dev, VIDEO_CID_HFLIP, (void *)1)) {
+		LOG_ERR("Unable to set video control (HFLIP)");
+		return 0;
 	}
+#endif
 
-	if (IS_ENABLED(CONFIG_VIDEO_VFLIP)) {
-		ctrl.id = VIDEO_CID_VFLIP;
-		video_set_ctrl(video_dev, &ctrl);
+#ifdef CONFIG_VIDEO_VFLIP
+	/* Video flip image vertically */
+	if (video_set_ctrl(video_dev, VIDEO_CID_VFLIP, (void *)1)) {
+		LOG_ERR("Unable to set video control (VFLIP)");
+		return 0;
 	}
+#endif
 
 	/* Start video capture */
 	if (video_stream_start(video_dev)) {

@@ -21,10 +21,12 @@
 #include <zephyr/pm/device_runtime.h>
 #include "i2c_ll_stm32.h"
 
+#ifdef CONFIG_DCACHE
 #include <zephyr/cache.h>
 #include <zephyr/linker/linker-defs.h>
 #include <zephyr/mem_mgmt/mem_attr.h>
 #include <zephyr/dt-bindings/memory-attr/memory-attr-arm.h>
+#endif /* CONFIG_DCACHE */
 
 #define LOG_LEVEL CONFIG_I2C_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -193,12 +195,10 @@ static inline void msg_init(const struct device *dev, struct i2c_msg *msg,
 				/* Configure RX DMA */
 				data->dma_blk_cfg.source_address = LL_I2C_DMA_GetRegAddr(
 					cfg->i2c, LL_I2C_DMA_REG_DATA_RECEIVE);
-				data->dma_blk_cfg.source_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 				data->dma_blk_cfg.dest_address = (uint32_t)msg->buf;
-				data->dma_blk_cfg.dest_addr_adj = DMA_ADDR_ADJ_INCREMENT;
 				data->dma_blk_cfg.block_size = msg->len;
 
-				if (configure_dma(&cfg->rx_dma, &data->dma_rx_cfg,
+				if (configure_dma(&cfg->rx_dma, &data->dma_cfg,
 						  &data->dma_blk_cfg) != 0) {
 					LOG_ERR("Problem setting up RX DMA");
 					return;
@@ -211,13 +211,10 @@ static inline void msg_init(const struct device *dev, struct i2c_msg *msg,
 					/* Configure TX DMA */
 					data->dma_blk_cfg.source_address =
 						(uint32_t)data->current.buf;
-					data->dma_blk_cfg.source_addr_adj = DMA_ADDR_ADJ_INCREMENT;
 					data->dma_blk_cfg.dest_address = LL_I2C_DMA_GetRegAddr(
 						cfg->i2c, LL_I2C_DMA_REG_DATA_TRANSMIT);
-					data->dma_blk_cfg.dest_addr_adj = DMA_ADDR_ADJ_NO_CHANGE;
 					data->dma_blk_cfg.block_size = msg->len;
-
-					if (configure_dma(&cfg->tx_dma, &data->dma_tx_cfg,
+					if (configure_dma(&cfg->tx_dma, &data->dma_cfg,
 							  &data->dma_blk_cfg) != 0) {
 						LOG_ERR("Problem setting up TX DMA");
 						return;
@@ -686,7 +683,7 @@ void stm32_i2c_error_isr(void *arg)
 }
 #endif
 
-#if defined(CONFIG_DCACHE) && defined(CONFIG_I2C_STM32_V2_DMA)
+#ifdef CONFIG_DCACHE
 static bool buf_in_nocache(uintptr_t buf, size_t len_bytes)
 {
 	bool buf_within_nocache = false;
@@ -700,14 +697,12 @@ static bool buf_in_nocache(uintptr_t buf, size_t len_bytes)
 	}
 #endif /* CONFIG_NOCACHE_MEMORY */
 
-#ifdef CONFIG_MEM_ATTR
 	/* Check if buffer is in nocache memory region defined in DT */
 	buf_within_nocache = mem_attr_check_buf(
 		(void *)buf, len_bytes, DT_MEM_ARM(ATTR_MPU_RAM_NOCACHE)) == 0;
 	if (buf_within_nocache) {
 		return true;
 	}
-#endif /* CONFIG_MEM_ATTR */
 
 	/* Check if buffer is in RO region (Flash..) */
 	buf_within_nocache = (buf >= ((uintptr_t)__rodata_region_start)) &&
@@ -715,7 +710,7 @@ static bool buf_in_nocache(uintptr_t buf, size_t len_bytes)
 
 	return buf_within_nocache;
 }
-#endif /* CONFIG_DCACHE && CONFIG_I2C_STM32_V2_DMA */
+#endif /* CONFIG_DCACHE */
 
 static int stm32_i2c_msg_write(const struct device *dev, struct i2c_msg *msg,
 			uint8_t *next_msg_flags, uint16_t slave)
@@ -732,13 +727,13 @@ static int stm32_i2c_msg_write(const struct device *dev, struct i2c_msg *msg,
 	data->current.is_err = 0U;
 	data->current.msg = msg;
 
-#if defined(CONFIG_DCACHE) && defined(CONFIG_I2C_STM32_V2_DMA)
+#ifdef CONFIG_DCACHE
 	if (!buf_in_nocache((uintptr_t)msg->buf, msg->len)) {
 		LOG_DBG("Tx buffer at %p (len %zu) is in cached memory; cleaning cache", msg->buf,
 			msg->len);
 		sys_cache_data_flush_range((void *)msg->buf, msg->len);
 	}
-#endif /* CONFIG_DCACHE && CONFIG_I2C_STM32_V2_DMA*/
+#endif /* CONFIG_DCACHE */
 
 	msg_init(dev, msg, next_msg_flags, slave, LL_I2C_REQUEST_WRITE);
 
@@ -811,13 +806,13 @@ static int stm32_i2c_msg_read(const struct device *dev, struct i2c_msg *msg,
 		is_timeout = true;
 	}
 
-#if defined(CONFIG_DCACHE) && defined(CONFIG_I2C_STM32_V2_DMA)
+#ifdef CONFIG_DCACHE
 	if (!buf_in_nocache((uintptr_t)msg->buf, msg->len)) {
 		LOG_DBG("Rx buffer at %p (len %zu) is in cached memory; invalidating cache",
 			msg->buf, msg->len);
 		sys_cache_data_invd_range((void *)msg->buf, msg->len);
 	}
-#endif /* CONFIG_DCACHE && CONFIG_I2C_STM32_V2_DMA */
+#endif /* CONFIG_DCACHE */
 
 	if (data->current.is_nack || data->current.is_err ||
 	    data->current.is_arlo || is_timeout) {

@@ -1,5 +1,5 @@
 identifier: rpi_pico/rp2040/w
-name: Raspberry Pi Pico W
+name: RaspberryPi-Pico-w
 type: mcu
 arch: arm
 flash: 2048

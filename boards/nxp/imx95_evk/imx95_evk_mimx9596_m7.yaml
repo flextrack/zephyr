@@ -18,5 +18,4 @@ supported:
   - i2c
   - pwm
   - spi
-  - netif:eth
 vendor: nxp

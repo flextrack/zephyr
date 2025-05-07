@@ -24,7 +24,6 @@
  */
 
 #include <stdint.h>
-#include <stddef.h>
 
 #include <zephyr/bluetooth/addr.h>
 #include <zephyr/bluetooth/bluetooth.h>
@@ -229,7 +228,7 @@ struct bt_iso_chan_io_qos {
 	 */
 	uint16_t			sdu;
 	/**
-	 * @brief Channel PHY - See the @ref bt_gap_le_phy values.
+	 * @brief Channel PHY - See the BT_GAP_LE_PHY_* values.
 	 *
 	 * Setting @ref BT_GAP_LE_PHY_NONE is invalid.
 	 */
@@ -433,7 +432,7 @@ struct bt_iso_cig_param {
 	 * @brief Channel peripherals sleep clock accuracy Only for CIS
 	 *
 	 * Shall be worst case sleep clock accuracy of all the peripherals.
-	 * For possible values, see @ref bt_gap_sca.
+	 * For possible values see the BT_GAP_SCA_* values.
 	 * If unknown for the peripherals, this should be set to @ref BT_GAP_SCA_UNKNOWN.
 	 */
 	uint8_t sca;

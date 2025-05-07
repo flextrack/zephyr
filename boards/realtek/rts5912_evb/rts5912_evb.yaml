@@ -15,5 +15,4 @@ flash: 320
 supported:
   - gpio
   - pinmux
-  - adc
 vendor: realtek

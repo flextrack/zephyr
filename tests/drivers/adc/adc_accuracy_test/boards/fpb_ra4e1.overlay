@@ -7,9 +7,8 @@
 / {
 	zephyr,user {
 		io-channels = <&adc0 0>;
-		dac = <&dac0>;
-		dac-channel-id = <0>;
-		dac-resolution = <12>;
+		reference_mv = <3300>;
+		expected_accuracy = <32>;
 	};
 };
 
@@ -24,5 +23,6 @@
 		zephyr,reference = "ADC_REF_INTERNAL";
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 		zephyr,resolution = <12>;
+		zephyr,vref-mv = <3300>;
 	};
 };

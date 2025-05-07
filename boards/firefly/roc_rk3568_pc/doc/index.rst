@@ -61,8 +61,6 @@ CPU's UART2.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Use U-Boot to load the zephyr.bin to the memory and kick it:
 
 .. code-block:: console

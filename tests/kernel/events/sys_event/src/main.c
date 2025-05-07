@@ -34,8 +34,10 @@ static K_SEM_DEFINE(sync_sem, 0, 1);
 volatile static uint32_t test_events;
 
 /**
- * @ingroup kernel_event_tests
+ * @defgroup kernel_sys_events_tests Semaphore
+ * @ingroup all_tests
  * @{
+ * @}
  */
 
 static void entry_extra1(void *p1, void *p2, void *p3)
@@ -402,8 +404,5 @@ void *sys_events_setup(void)
 	return NULL;
 }
 
-/**
- * @}
- */
 ZTEST_SUITE(sys_events, NULL, sys_events_setup,
 		ztest_simple_1cpu_before, ztest_simple_1cpu_after, NULL);

@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "posix_clock.h"
 #include "posix_internal.h"
 
 #include <zephyr/init.h>
@@ -16,12 +15,12 @@
 
 LOG_MODULE_REGISTER(pthread_cond, CONFIG_PTHREAD_COND_LOG_LEVEL);
 
-static __pinned_bss struct posix_cond posix_cond_pool[CONFIG_MAX_PTHREAD_COND_COUNT];
+int64_t timespec_to_timeoutms(const struct timespec *abstime);
+
+__pinned_bss
+static struct k_condvar posix_cond_pool[CONFIG_MAX_PTHREAD_COND_COUNT];
 
 SYS_BITARRAY_DEFINE_STATIC(posix_cond_bitarray, CONFIG_MAX_PTHREAD_COND_COUNT);
-
-BUILD_ASSERT(sizeof(struct posix_condattr) <= sizeof(pthread_condattr_t),
-	     "posix_condattr is too large");
 
 /*
  * We reserve the MSB to mark a pthread_cond_t as initialized (from the
@@ -31,7 +30,7 @@ BUILD_ASSERT(sizeof(struct posix_condattr) <= sizeof(pthread_condattr_t),
 BUILD_ASSERT(CONFIG_MAX_PTHREAD_COND_COUNT < PTHREAD_OBJ_MASK_INIT,
 	     "CONFIG_MAX_PTHREAD_COND_COUNT is too high");
 
-static inline size_t posix_cond_to_offset(struct posix_cond *cv)
+static inline size_t posix_cond_to_offset(struct k_condvar *cv)
 {
 	return cv - posix_cond_pool;
 }
@@ -41,7 +40,7 @@ static inline size_t to_posix_cond_idx(pthread_cond_t cond)
 	return mark_pthread_obj_uninitialized(cond);
 }
 
-static struct posix_cond *get_posix_cond(pthread_cond_t cond)
+static struct k_condvar *get_posix_cond(pthread_cond_t cond)
 {
 	int actually_initialized;
 	size_t bit = to_posix_cond_idx(cond);
@@ -67,10 +66,10 @@ static struct posix_cond *get_posix_cond(pthread_cond_t cond)
 	return &posix_cond_pool[bit];
 }
 
-static struct posix_cond *to_posix_cond(pthread_cond_t *cvar)
+static struct k_condvar *to_posix_cond(pthread_cond_t *cvar)
 {
 	size_t bit;
-	struct posix_cond *cv;
+	struct k_condvar *cv;
 
 	if (*cvar != PTHREAD_COND_INITIALIZER) {
 		return get_posix_cond(*cvar);
@@ -86,17 +85,15 @@ static struct posix_cond *to_posix_cond(pthread_cond_t *cvar)
 	/* Record the associated posix_cond in mu and mark as initialized */
 	*cvar = mark_pthread_obj_initialized(bit);
 	cv = &posix_cond_pool[bit];
-	(void)pthread_condattr_init((pthread_condattr_t *)&cv->attr);
 
 	return cv;
 }
 
-static int cond_wait(pthread_cond_t *cond, pthread_mutex_t *mu, const struct timespec *abstime)
+static int cond_wait(pthread_cond_t *cond, pthread_mutex_t *mu, k_timeout_t timeout)
 {
 	int ret;
 	struct k_mutex *m;
-	struct posix_cond *cv;
-	k_timeout_t timeout = K_FOREVER;
+	struct k_condvar *cv;
 
 	m = to_posix_mutex(mu);
 	cv = to_posix_cond(cond);
@@ -104,12 +101,8 @@ static int cond_wait(pthread_cond_t *cond, pthread_mutex_t *mu, const struct tim
 		return EINVAL;
 	}
 
-	if (abstime != NULL) {
-		timeout = K_MSEC(timespec_to_timeoutms(cv->attr.clock, abstime));
-	}
-
 	LOG_DBG("Waiting on cond %p with timeout %llx", cv, timeout.ticks);
-	ret = k_condvar_wait(&cv->condvar, m, timeout);
+	ret = k_condvar_wait(cv, m, timeout);
 	if (ret == -EAGAIN) {
 		LOG_DBG("Timeout waiting on cond %p", cv);
 		ret = ETIMEDOUT;
@@ -127,7 +120,7 @@ static int cond_wait(pthread_cond_t *cond, pthread_mutex_t *mu, const struct tim
 int pthread_cond_signal(pthread_cond_t *cvar)
 {
 	int ret;
-	struct posix_cond *cv;
+	struct k_condvar *cv;
 
 	cv = to_posix_cond(cvar);
 	if (cv == NULL) {
@@ -135,7 +128,7 @@ int pthread_cond_signal(pthread_cond_t *cvar)
 	}
 
 	LOG_DBG("Signaling cond %p", cv);
-	ret = k_condvar_signal(&cv->condvar);
+	ret = k_condvar_signal(cv);
 	if (ret < 0) {
 		LOG_DBG("k_condvar_signal() failed: %d", ret);
 		return -ret;
@@ -149,7 +142,7 @@ int pthread_cond_signal(pthread_cond_t *cvar)
 int pthread_cond_broadcast(pthread_cond_t *cvar)
 {
 	int ret;
-	struct posix_cond *cv;
+	struct k_condvar *cv;
 
 	cv = get_posix_cond(*cvar);
 	if (cv == NULL) {
@@ -157,7 +150,7 @@ int pthread_cond_broadcast(pthread_cond_t *cvar)
 	}
 
 	LOG_DBG("Broadcasting on cond %p", cv);
-	ret = k_condvar_broadcast(&cv->condvar);
+	ret = k_condvar_broadcast(cv);
 	if (ret < 0) {
 		LOG_DBG("k_condvar_broadcast() failed: %d", ret);
 		return -ret;
@@ -170,37 +163,25 @@ int pthread_cond_broadcast(pthread_cond_t *cvar)
 
 int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mut)
 {
-	return cond_wait(cv, mut, NULL);
+	return cond_wait(cv, mut, K_FOREVER);
 }
 
 int pthread_cond_timedwait(pthread_cond_t *cv, pthread_mutex_t *mut, const struct timespec *abstime)
 {
-	if ((abstime == NULL) || !timespec_is_valid(abstime)) {
-		LOG_DBG("%s is invalid", "abstime");
-		return EINVAL;
-	}
-
-	return cond_wait(cv, mut, abstime);
+	return cond_wait(cv, mut, K_MSEC((int32_t)timespec_to_timeoutms(abstime)));
 }
 
 int pthread_cond_init(pthread_cond_t *cvar, const pthread_condattr_t *att)
 {
-	struct posix_cond *cv;
-	struct posix_condattr *attr = (struct posix_condattr *)att;
+	struct k_condvar *cv;
 
+	ARG_UNUSED(att);
 	*cvar = PTHREAD_COND_INITIALIZER;
+
+	/* calls k_condvar_init() */
 	cv = to_posix_cond(cvar);
 	if (cv == NULL) {
 		return ENOMEM;
-	}
-
-	if (attr != NULL) {
-		if (!attr->initialized) {
-			return EINVAL;
-		}
-
-		(void)pthread_condattr_destroy((pthread_condattr_t *)&cv->attr);
-		cv->attr = *attr;
 	}
 
 	LOG_DBG("Initialized cond %p", cv);
@@ -212,7 +193,7 @@ int pthread_cond_destroy(pthread_cond_t *cvar)
 {
 	int err;
 	size_t bit;
-	struct posix_cond *cv;
+	struct k_condvar *cv;
 
 	cv = get_posix_cond(*cvar);
 	if (cv == NULL) {
@@ -237,7 +218,7 @@ static int pthread_cond_pool_init(void)
 	size_t i;
 
 	for (i = 0; i < CONFIG_MAX_PTHREAD_COND_COUNT; ++i) {
-		err = k_condvar_init(&posix_cond_pool[i].condvar);
+		err = k_condvar_init(&posix_cond_pool[i]);
 		__ASSERT_NO_MSG(err == 0);
 	}
 
@@ -246,32 +227,16 @@ static int pthread_cond_pool_init(void)
 
 int pthread_condattr_init(pthread_condattr_t *att)
 {
-	struct posix_condattr *const attr = (struct posix_condattr *)att;
+	__ASSERT_NO_MSG(att != NULL);
 
-	if (att == NULL) {
-		return EINVAL;
-	}
-	if (attr->initialized) {
-		LOG_DBG("%s %s initialized", "attribute", "already");
-		return EINVAL;
-	}
-
-	attr->clock = CLOCK_REALTIME;
-	attr->initialized = true;
+	att->clock = CLOCK_MONOTONIC;
 
 	return 0;
 }
 
 int pthread_condattr_destroy(pthread_condattr_t *att)
 {
-	struct posix_condattr *const attr = (struct posix_condattr *)att;
-
-	if ((attr == NULL) || !attr->initialized) {
-		LOG_DBG("%s %s initialized", "attribute", "not");
-		return EINVAL;
-	}
-
-	*attr = (struct posix_condattr){0};
+	ARG_UNUSED(att);
 
 	return 0;
 }
@@ -279,32 +244,18 @@ int pthread_condattr_destroy(pthread_condattr_t *att)
 int pthread_condattr_getclock(const pthread_condattr_t *ZRESTRICT att,
 		clockid_t *ZRESTRICT clock_id)
 {
-	struct posix_condattr *const attr = (struct posix_condattr *)att;
-
-	if ((attr == NULL) || !attr->initialized) {
-		LOG_DBG("%s %s initialized", "attribute", "not");
-		return EINVAL;
-	}
-
-	*clock_id = attr->clock;
+	*clock_id = att->clock;
 
 	return 0;
 }
 
 int pthread_condattr_setclock(pthread_condattr_t *att, clockid_t clock_id)
 {
-	struct posix_condattr *const attr = (struct posix_condattr *)att;
-
 	if (clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC) {
 		return -EINVAL;
 	}
 
-	if ((attr == NULL) || !attr->initialized) {
-		LOG_DBG("%s %s initialized", "attribute", "not");
-		return EINVAL;
-	}
-
-	attr->clock = clock_id;
+	att->clock = clock_id;
 
 	return 0;
 }

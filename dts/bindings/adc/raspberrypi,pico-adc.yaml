@@ -1,7 +1,7 @@
 # Copyright (c) 2022 TOKTIA Hrioshi <tokita.hiroshi@fujitsu.com>
 # SPDX-License-Identifier: Apache-2.0
 
-description: Raspberry Pi Pico ADC
+description: RaspberryPi Pico ADC
 
 compatible: "raspberrypi,pico-adc"
 

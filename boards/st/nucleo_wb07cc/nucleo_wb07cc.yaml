@@ -18,6 +18,5 @@ supported:
   - pwm
   - rtc
   - spi
-  - watchdog
   - bluetooth
 vendor: st

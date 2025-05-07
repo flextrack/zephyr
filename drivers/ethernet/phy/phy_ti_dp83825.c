@@ -213,13 +213,13 @@ static int phy_ti_dp83825_get_link(const struct device *dev, struct phy_link_sta
 	mutual_capabilities = anar & anlpar;
 
 	if (mutual_capabilities & MII_ADVERTISE_100_FULL) {
-		state->speed = LINK_FULL_100BASE;
+		state->speed = LINK_FULL_100BASE_T;
 	} else if (mutual_capabilities & MII_ADVERTISE_100_HALF) {
-		state->speed = LINK_HALF_100BASE;
+		state->speed = LINK_HALF_100BASE_T;
 	} else if (mutual_capabilities & MII_ADVERTISE_10_FULL) {
-		state->speed = LINK_FULL_10BASE;
+		state->speed = LINK_FULL_10BASE_T;
 	} else if (mutual_capabilities & MII_ADVERTISE_10_HALF) {
-		state->speed = LINK_HALF_10BASE;
+		state->speed = LINK_HALF_10BASE_T;
 	} else {
 		return -EIO;
 	}
@@ -401,25 +401,25 @@ static int phy_ti_dp83825_cfg_link(const struct device *dev, enum phy_link_speed
 	}
 
 	/* Setup advertising register */
-	if (speeds & LINK_FULL_100BASE) {
+	if (speeds & LINK_FULL_100BASE_T) {
 		anar |= MII_ADVERTISE_100_FULL;
 	} else {
 		anar &= ~MII_ADVERTISE_100_FULL;
 	}
 
-	if (speeds & LINK_HALF_100BASE) {
+	if (speeds & LINK_HALF_100BASE_T) {
 		anar |= MII_ADVERTISE_100_HALF;
 	} else {
 		anar &= ~MII_ADVERTISE_100_HALF;
 	}
 
-	if (speeds & LINK_FULL_10BASE) {
+	if (speeds & LINK_FULL_10BASE_T) {
 		anar |= MII_ADVERTISE_10_FULL;
 	} else {
 		anar &= ~MII_ADVERTISE_10_FULL;
 	}
 
-	if (speeds & LINK_HALF_10BASE) {
+	if (speeds & LINK_HALF_10BASE_T) {
 		anar |= MII_ADVERTISE_10_HALF;
 	} else {
 		anar &= ~MII_ADVERTISE_10_HALF;

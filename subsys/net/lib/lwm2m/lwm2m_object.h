@@ -131,12 +131,15 @@
 
 BUILD_ASSERT(CONFIG_LWM2M_COAP_BLOCK_SIZE <= CONFIG_LWM2M_COAP_MAX_MSG_SIZE,
 	     "CoAP block size can't exceed maximum message size");
-BUILD_ASSERT(CONFIG_LWM2M_COAP_BLOCK_SIZE == 64 ||
-	     CONFIG_LWM2M_COAP_BLOCK_SIZE == 128 ||
-	     CONFIG_LWM2M_COAP_BLOCK_SIZE == 256 ||
-	     CONFIG_LWM2M_COAP_BLOCK_SIZE == 512 ||
-	     CONFIG_LWM2M_COAP_BLOCK_SIZE == 1024,
-	     "CoAP block must be 64, 128, 256, 512 or 1024");
+
+#define MAX_PACKET_SIZE		(CONFIG_LWM2M_COAP_MAX_MSG_SIZE + \
+				 CONFIG_LWM2M_ENGINE_MESSAGE_HEADER_SIZE)
+
+#if defined(CONFIG_LWM2M_COAP_BLOCK_TRANSFER)
+BUILD_ASSERT(CONFIG_LWM2M_COAP_ENCODE_BUFFER_SIZE >
+		     (CONFIG_LWM2M_COAP_BLOCK_SIZE + CONFIG_LWM2M_ENGINE_MESSAGE_HEADER_SIZE),
+	     "The buffer for serializing message needs to be bigger than a message with one block");
+#endif
 
 /* buffer util macros */
 #define CPKT_BUF_WRITE(cpkt)	(cpkt)->data, &(cpkt)->offset, (cpkt)->max_len
@@ -491,7 +494,7 @@ struct lwm2m_message {
 	struct coap_packet cpkt;
 
 	/** Buffer data related outgoing message */
-	uint8_t msg_data[CONFIG_LWM2M_COAP_MAX_MSG_SIZE];
+	uint8_t msg_data[MAX_PACKET_SIZE];
 
 #if defined(CONFIG_LWM2M_COAP_BLOCK_TRANSFER)
 	/** Buffer data containing complete message */

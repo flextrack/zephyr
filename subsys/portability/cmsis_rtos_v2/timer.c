@@ -67,7 +67,11 @@ osTimerId_t osTimerNew(osTimerFunc_t func, osTimerType_t type, void *argument,
 
 	k_timer_init(&timer->z_timer, zephyr_timer_wrapper, NULL);
 
-	timer->name = (attr->name == NULL) ? init_timer_attrs.name : attr->name;
+	if (attr->name == NULL) {
+		strncpy(timer->name, init_timer_attrs.name, sizeof(timer->name) - 1);
+	} else {
+		strncpy(timer->name, attr->name, sizeof(timer->name) - 1);
+	}
 
 	return (osTimerId_t)timer;
 }
@@ -149,15 +153,15 @@ osStatus_t osTimerDelete(osTimerId_t timer_id)
 
 /**
  * @brief Get name of a timer.
- * This function may be called from Interrupt Service Routines.
  */
 const char *osTimerGetName(osTimerId_t timer_id)
 {
 	struct cmsis_rtos_timer_cb *timer = (struct cmsis_rtos_timer_cb *)timer_id;
 
-	if (timer == NULL) {
+	if (k_is_in_isr() || (timer == NULL)) {
 		return NULL;
 	}
+
 	return timer->name;
 }
 

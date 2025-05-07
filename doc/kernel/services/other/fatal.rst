@@ -120,8 +120,8 @@ discouraged.
 Build Assertions
 ================
 
-Zephyr provides a macro for performing build-time assertion checks.
-It is evaluated completely at compile-time and always checked.
+Zephyr provides two macros for performing build-time assertion checks.
+These are evaluated completely at compile-time, and are always checked.
 
 BUILD_ASSERT()
 --------------

@@ -14,8 +14,6 @@ supported:
   - gpio
   - spi
   - uart
-  - usb_device
-  - usbd
 vendor: st
 variants:
   nucleo_n657x0_q/stm32n657xx:

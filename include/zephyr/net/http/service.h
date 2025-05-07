@@ -65,10 +65,6 @@ struct http_resource_desc {
 
 /** @cond INTERNAL_HIDDEN */
 
-struct http_service_runtime_data {
-	int num_clients;
-};
-
 struct http_service_desc {
 	const char *host;
 	uint16_t *port;
@@ -76,7 +72,6 @@ struct http_service_desc {
 	void *detail;
 	size_t concurrent;
 	size_t backlog;
-	struct http_service_runtime_data *data;
 	struct http_resource_desc *res_begin;
 	struct http_resource_desc *res_end;
 	struct http_resource_detail *res_fallback;
@@ -87,19 +82,15 @@ struct http_service_desc {
 };
 
 #define __z_http_service_define(_name, _host, _port, _concurrent, _backlog, _detail,               \
-				_res_fallback, _res_begin, _res_end, ...)                          \
-	BUILD_ASSERT(_concurrent <= CONFIG_HTTP_SERVER_MAX_CLIENTS,                                \
-		     "can't accept more then MAX_CLIENTS");                                        \
-	BUILD_ASSERT(_backlog > 0, "backlog can't be 0");                                          \
+				_res_fallback, _res_begin,                                         \
+				_res_end, ...)                                                     \
 	static int _name##_fd = -1;                                                                \
-	static struct http_service_runtime_data _name##_data = {0};                                \
 	const STRUCT_SECTION_ITERABLE(http_service_desc, _name) = {                                \
 		.host = _host,                                                                     \
 		.port = (uint16_t *)(_port),                                                       \
 		.fd = &_name##_fd,                                                                 \
 		.detail = (void *)(_detail),                                                       \
 		.concurrent = (_concurrent),                                                       \
-		.data = &_name##_data,                                                             \
 		.backlog = (_backlog),                                                             \
 		.res_begin = (_res_begin),                                                         \
 		.res_end = (_res_end),                                                             \
@@ -129,8 +120,8 @@ struct http_service_desc {
  * @param _name Name of the service.
  * @param _host IP address or hostname associated with the service.
  * @param[inout] _port Pointer to port associated with the service.
- * @param _concurrent Maximum number of concurrent clients. (max. CONFIG_HTTP_SERVER_MAX_CLIENTS)
- * @param _backlog Maximum number of queued connections. (min. 1)
+ * @param _concurrent Maximum number of concurrent clients.
+ * @param _backlog Maximum number queued connections.
  * @param _detail User-defined detail associated with the service.
  * @param _res_fallback Fallback resource to be served if no other resource matches path
  */
@@ -154,8 +145,8 @@ struct http_service_desc {
  * @param _name Name of the service.
  * @param _host IP address or hostname associated with the service.
  * @param[inout] _port Pointer to port associated with the service.
- * @param _concurrent Maximum number of concurrent clients. (max. CONFIG_HTTP_SERVER_MAX_CLIENTS)
- * @param _backlog Maximum number of queued connections. (min. 1)
+ * @param _concurrent Maximum number of concurrent clients.
+ * @param _backlog Maximum number queued connections.
  * @param _detail User-defined detail associated with the service.
  * @param _res_fallback Fallback resource to be served if no other resource matches path
  * @param _sec_tag_list TLS security tag list used to setup a HTTPS socket.
@@ -184,8 +175,8 @@ struct http_service_desc {
  * @param _name Name of the service.
  * @param _host IP address or hostname associated with the service.
  * @param[inout] _port Pointer to port associated with the service.
- * @param _concurrent Maximum number of concurrent clients. (max. CONFIG_HTTP_SERVER_MAX_CLIENTS)
- * @param _backlog Maximum number of queued connections. (min. 1)
+ * @param _concurrent Maximum number of concurrent clients.
+ * @param _backlog Maximum number queued connections.
  * @param _detail User-defined detail associated with the service.
  * @param _res_fallback Fallback resource to be served if no other resource matches path
  */
@@ -195,7 +186,7 @@ struct http_service_desc {
 	__z_http_service_define(_name, _host, _port, _concurrent, _backlog, _detail,               \
 				_res_fallback,                                                     \
 				&_CONCAT(_http_resource_desc_##_name, _list_start)[0],             \
-				&_CONCAT(_http_resource_desc_##_name, _list_end)[0]);
+				&_CONCAT(_http_resource_desc_##_name, _list_end)[0])
 
 /**
  * @brief Define an HTTPS service with static resources.
@@ -212,8 +203,8 @@ struct http_service_desc {
  * @param _name Name of the service.
  * @param _host IP address or hostname associated with the service.
  * @param[inout] _port Pointer to port associated with the service.
- * @param _concurrent Maximum number of concurrent clients. (max. CONFIG_HTTP_SERVER_MAX_CLIENTS)
- * @param _backlog Maximum number of queued connections. (min. 1)
+ * @param _concurrent Maximum number of concurrent clients.
+ * @param _backlog Maximum number queued connections.
  * @param _detail User-defined detail associated with the service.
  * @param _res_fallback Fallback resource to be served if no other resource matches path
  * @param _sec_tag_list TLS security tag list used to setup a HTTPS socket.

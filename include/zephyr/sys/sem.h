@@ -43,7 +43,7 @@ struct sys_sem {
 
 /**
  * @defgroup user_semaphore_apis User mode semaphore APIs
- * @ingroup usermode_apis
+ * @ingroup kernel_apis
  * @{
  */
 

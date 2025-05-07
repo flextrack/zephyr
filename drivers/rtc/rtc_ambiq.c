@@ -15,7 +15,7 @@
 
 LOG_MODULE_REGISTER(ambiq_rtc, CONFIG_RTC_LOG_LEVEL);
 
-#include <soc.h>
+#include <am_mcu_apollo.h>
 
 #define AMBIQ_RTC_ALARM_TIME_MASK                                                              \
 	(RTC_ALARM_TIME_MASK_SECOND | RTC_ALARM_TIME_MASK_MINUTE | RTC_ALARM_TIME_MASK_HOUR |      \

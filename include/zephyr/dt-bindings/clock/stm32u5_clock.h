@@ -11,7 +11,7 @@
 
 /** Domain clocks */
 
-/* RM0456, Figure 36 Clock tree for STM32U5 Series */
+/* RM0468, Table 56 Kernel clock distribution summary */
 
 /** System clock */
 /* defined in stm32_common_clocks.h */

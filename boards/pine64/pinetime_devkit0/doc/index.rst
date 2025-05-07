@@ -110,8 +110,6 @@ basic button sample:
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 The PineTime Dev Kit comes with the back not glued down to allow it to be
 easily reprogrammed.
 

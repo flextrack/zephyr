@@ -33,8 +33,6 @@ See Processor clock control register (refer 5.1 General Configuration)
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Flashing
 ========
 

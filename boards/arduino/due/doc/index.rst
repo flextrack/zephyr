@@ -104,8 +104,6 @@ default, is utilizing this controller.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Flashing
 ========
 

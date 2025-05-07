@@ -8,12 +8,10 @@
 #ifndef SUBSYS_BLUETOOTH_HOST_SCAN_H_
 #define SUBSYS_BLUETOOTH_HOST_SCAN_H_
 
-#include <stdbool.h>
 #include <stdint.h>
 
-#include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/conn.h>
 #include <zephyr/sys/atomic.h>
+#include <zephyr/bluetooth/bluetooth.h>
 
 /**
  * Reasons why a scanner can be running.

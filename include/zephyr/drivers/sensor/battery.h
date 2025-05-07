@@ -19,9 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @brief Battery API
- * @defgroup battery_apis Battery APIs
- * @ingroup sensor_interface
+ * @brief battery API
+ * @defgroup battery_apis battery APIs
  * @{
  */
 

@@ -94,9 +94,6 @@ struct e1000_dev {
 	const struct device *ptp_clock;
 	double clk_ratio;
 #endif
-#if defined(CONFIG_NET_STATISTICS_ETHERNET)
-	struct net_stats_eth stats;
-#endif
 };
 
 struct e1000_config {

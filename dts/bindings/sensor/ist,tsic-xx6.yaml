@@ -17,8 +17,6 @@ description: |
 
 compatible: "ist,tsic-xx6"
 
-include: sensor-device.yaml
-
 properties:
   pwms:
     required: true

@@ -18,7 +18,6 @@
 	chosen {
 		zephyr,sram = &atcm;
 		zephyr,console = &uart1;
-		zephyr,shell-uart = &uart1;
 	};
 
 	cpus {

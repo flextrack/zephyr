@@ -25,6 +25,3 @@ family:
   - name: esp32c6
     socs:
     - name: esp32c6
-      cpuclusters:
-      - name: hpcore
-      - name: lpcore

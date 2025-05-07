@@ -44,9 +44,7 @@ tests:
     extra_configs:
       - CONFIG_LLEXT_STORAGE_WRITABLE=n
   llext.readonly_mpu:
-    arch_allow:
-      - arm # Xtensa needs writable storage, currently not supported on RISC-V
-      - arc
+    arch_allow: arm # Xtensa needs writable storage, currently not supported on RISC-V
     filter: CONFIG_ARCH_HAS_USERSPACE
     extra_configs:
       - CONFIG_USERSPACE=y

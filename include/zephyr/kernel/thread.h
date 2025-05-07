@@ -196,7 +196,6 @@ struct _mem_domain_info {
 	struct k_mem_domain *mem_domain;
 };
 
-typedef struct _mem_domain_info _mem_domain_info_t;
 #endif /* CONFIG_USERSPACE */
 
 #ifdef CONFIG_THREAD_USERSPACE_LOCAL_DATA

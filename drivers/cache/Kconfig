@@ -22,6 +22,5 @@ source "drivers/cache/Kconfig.aspeed"
 source "drivers/cache/Kconfig.nrf"
 source "drivers/cache/Kconfig.andes"
 source "drivers/cache/Kconfig.nxp_xcache"
-source "drivers/cache/Kconfig.stm32"
 
 endif # CACHE

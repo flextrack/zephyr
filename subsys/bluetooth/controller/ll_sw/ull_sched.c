@@ -180,7 +180,8 @@ void ull_sched_mfy_after_cen_offset_get(void *param)
 
 	conn = HDR_LLL2ULL(lll->conn);
 	if (IS_ENABLED(CONFIG_BT_CTLR_LOW_LAT)) {
-		ticks_slot_overhead = HAL_TICKER_US_TO_TICKS(EVENT_OVERHEAD_XTAL_US);
+		ticks_slot_overhead = MAX(conn->ull.ticks_active_to_start,
+					  conn->ull.ticks_prepare_to_start);
 	} else {
 		ticks_slot_overhead = 0U;
 	}
@@ -203,10 +204,12 @@ void ull_sched_mfy_after_cen_offset_get(void *param)
 
 void ull_sched_mfy_win_offset_use(void *param)
 {
+	struct ll_conn *conn = param;
 	uint32_t ticks_slot_overhead;
 
 	if (IS_ENABLED(CONFIG_BT_CTLR_LOW_LAT)) {
-		ticks_slot_overhead = HAL_TICKER_US_TO_TICKS(EVENT_OVERHEAD_XTAL_US);
+		ticks_slot_overhead = MAX(conn->ull.ticks_active_to_start,
+					  conn->ull.ticks_prepare_to_start);
 	} else {
 		ticks_slot_overhead = 0U;
 	}
@@ -502,22 +505,28 @@ static uint8_t after_match_slot_get(uint8_t user_id, uint32_t ticks_slot_abs,
 			continue;
 		}
 
-#if defined(CONFIG_BT_CONN)
-		/* Consider Peripheral role ticks_slot as available */
-		if (IN_RANGE(ticker_id, TICKER_ID_CONN_BASE, TICKER_ID_CONN_LAST)) {
-			const struct ll_conn *conn;
-
-			conn = ll_conn_get(ticker_id - TICKER_ID_CONN_BASE);
-			if (conn && (conn->lll.role == BT_HCI_ROLE_PERIPHERAL)) {
-				continue;
-			}
-		}
-#endif /* CONFIG_BT_CONN */
-
 		ticks_to_expire_normal = ticks_to_expire;
 
 #if defined(CONFIG_BT_CTLR_LOW_LAT)
-		ticks_slot_abs_curr = HAL_TICKER_US_TO_TICKS(EVENT_OVERHEAD_XTAL_US);
+#if defined(CONFIG_BT_CTLR_XTAL_ADVANCED)
+		if (hdr->ticks_prepare_to_start & XON_BITMASK) {
+			const uint32_t ticks_prepare_to_start =
+				MAX(hdr->ticks_active_to_start,
+				    hdr->ticks_preempt_to_start);
+
+			ticks_slot_abs_curr = hdr->ticks_prepare_to_start &
+					      ~XON_BITMASK;
+			ticks_to_expire_normal -= ticks_slot_abs_curr -
+						  ticks_prepare_to_start;
+		} else
+#endif /* CONFIG_BT_CTLR_XTAL_ADVANCED */
+		{
+			const uint32_t ticks_prepare_to_start =
+				MAX(hdr->ticks_active_to_start,
+				    hdr->ticks_prepare_to_start);
+
+			ticks_slot_abs_curr = ticks_prepare_to_start;
+		}
 #endif
 
 		ticks_slot_abs_curr += ticks_slot;
@@ -692,9 +701,8 @@ static struct ull_hdr *ull_hdr_get_cb(uint8_t ticker_id, uint32_t *ticks_slot)
 		struct ll_conn *conn;
 
 		conn = ll_conn_get(ticker_id - TICKER_ID_CONN_BASE);
-		if (conn) {
-			if (IS_ENABLED(CONFIG_BT_CTLR_CENTRAL_RESERVE_MAX) &&
-			    (conn->lll.role == BT_HCI_ROLE_CENTRAL)) {
+		if (conn && !conn->lll.role) {
+			if (IS_ENABLED(CONFIG_BT_CTLR_CENTRAL_RESERVE_MAX)) {
 				uint32_t ready_delay_us;
 				uint16_t max_tx_time;
 				uint16_t max_rx_time;
@@ -731,9 +739,7 @@ static struct ull_hdr *ull_hdr_get_cb(uint8_t ticker_id, uint32_t *ticks_slot)
 				*ticks_slot = conn->ull.ticks_slot;
 			}
 
-			if ((conn->lll.role == BT_HCI_ROLE_CENTRAL) &&
-			    (*ticks_slot <
-			     HAL_TICKER_US_TO_TICKS(CONFIG_BT_CTLR_CENTRAL_SPACING))) {
+			if (*ticks_slot < HAL_TICKER_US_TO_TICKS(CONFIG_BT_CTLR_CENTRAL_SPACING)) {
 				*ticks_slot =
 					HAL_TICKER_US_TO_TICKS(CONFIG_BT_CTLR_CENTRAL_SPACING);
 			}

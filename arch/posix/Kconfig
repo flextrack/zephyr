@@ -3,7 +3,7 @@
 # Copyright (c) 2017 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-menu "Native (POSIX) Architecture Options"
+menu "POSIX (native) Options"
 	depends on ARCH_POSIX
 
 config ARCH

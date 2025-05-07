@@ -76,7 +76,6 @@ struct eth_context {
 };
 
 static const char *if_name_cmd_opt;
-static const char *mac_addr_cmd_opt;
 #ifdef CONFIG_NET_IPV4
 static const char *ipv4_addr_cmd_opt;
 static const char *ipv4_nm_cmd_opt;
@@ -308,10 +307,6 @@ static void eth_iface_init(struct net_if *iface)
 {
 	struct eth_context *ctx = net_if_get_device(iface)->data;
 	struct net_linkaddr *ll_addr = eth_get_mac(ctx);
-#if !defined(CONFIG_ETH_NATIVE_TAP_RANDOM_MAC)
-	const char *mac_addr =
-		mac_addr_cmd_opt ? mac_addr_cmd_opt : CONFIG_ETH_NATIVE_TAP_MAC_ADDR;
-#endif
 #ifdef CONFIG_NET_IPV4
 	struct in_addr addr, netmask;
 #endif
@@ -348,9 +343,11 @@ static void eth_iface_init(struct net_if *iface)
 	BUILD_ASSERT(CONFIG_ETH_NATIVE_TAP_INTERFACE_COUNT == 1,
 		     "Cannot have static MAC if interface count > 1");
 
-	if (mac_addr[0] != 0) {
-		if (net_bytes_from_str(ctx->mac_addr, sizeof(ctx->mac_addr), mac_addr) < 0) {
-			LOG_ERR("Invalid MAC address %s", mac_addr);
+	if (CONFIG_ETH_NATIVE_TAP_MAC_ADDR[0] != 0) {
+		if (net_bytes_from_str(ctx->mac_addr, sizeof(ctx->mac_addr),
+				       CONFIG_ETH_NATIVE_TAP_MAC_ADDR) < 0) {
+			LOG_ERR("Invalid MAC address %s",
+				CONFIG_ETH_NATIVE_TAP_MAC_ADDR);
 		}
 	}
 #endif
@@ -644,14 +641,6 @@ static void add_native_tap_options(void)
 			.type = 's',
 			.dest = (void *)&if_name_cmd_opt,
 			.descript = "Name of the eth interface to use",
-		},
-		{
-			.is_mandatory = false,
-			.option = "mac-addr",
-			.name = "mac",
-			.type = 's',
-			.dest = (void *)&mac_addr_cmd_opt,
-			.descript = "MAC address",
 		},
 #ifdef CONFIG_NET_IPV4
 		{

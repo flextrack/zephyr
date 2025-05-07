@@ -12,7 +12,7 @@
 #include <zephyr/device.h>
 #include <zephyr/logging/log.h>
 /* ambiq-sdk includes */
-#include <soc.h>
+#include <am_mcu_apollo.h>
 
 LOG_MODULE_REGISTER(ambiq_counter, CONFIG_COUNTER_LOG_LEVEL);
 

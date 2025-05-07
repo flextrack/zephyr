@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /** @defgroup cpu_load CPU load monitor
- *  @ingroup debug
+ *  @ingroup os_services
  *  @brief Module for monitoring CPU Load
  *
  *  This module allow monitoring of the CPU load.

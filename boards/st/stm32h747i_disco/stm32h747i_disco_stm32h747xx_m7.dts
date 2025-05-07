@@ -145,7 +145,6 @@
 		     &eth_txd1_pg12>;
 	pinctrl-names = "default";
 	phy-connection-type = "rmii";
-	phy-handle = <&eth_phy>;
 };
 
 &mdio {
@@ -153,9 +152,10 @@
 	pinctrl-0 = <&eth_mdio_pa2 &eth_mdc_pc1>;
 	pinctrl-names = "default";
 
-	eth_phy: ethernet-phy@0 {
+	ethernet-phy@0 {
 		compatible = "ethernet-phy";
 		reg = <0x00>;
+		status = "okay";
 	};
 };
 
@@ -239,7 +239,6 @@ zephyr_udc0: &usbotg_hs {
 			&sdmmc1_ck_pc12 &sdmmc1_cmd_pd2>;
 	pinctrl-names = "default";
 	cd-gpios = <&gpioi 8 GPIO_ACTIVE_LOW>;
-	disk-name = "SD";
 };
 
 &quadspi {

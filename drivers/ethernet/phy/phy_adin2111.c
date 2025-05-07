@@ -353,7 +353,7 @@ static int phy_adin2111_cfg_link(const struct device *dev,
 {
 	ARG_UNUSED(dev);
 
-	if (!!(adv_speeds & LINK_FULL_10BASE)) {
+	if (!!(adv_speeds & LINK_FULL_10BASE_T)) {
 		return 0;
 	}
 
@@ -449,7 +449,7 @@ static int phy_adin2111_init(const struct device *dev)
 
 	data->dev = dev;
 	data->state.is_up = false;
-	data->state.speed = LINK_FULL_10BASE;
+	data->state.speed = LINK_FULL_10BASE_T;
 
 	/*
 	 * For adin1100 and further mii stuff,

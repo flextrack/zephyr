@@ -8,7 +8,6 @@ compatible: "st,stm32-qdec"
 include:
   - name: base.yaml
   - name: pinctrl-device.yaml
-  - name: sensor-device.yaml
 
 properties:
   pinctrl-0:

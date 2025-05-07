@@ -677,7 +677,7 @@ static int nsos_connect_blocking(struct nsos_socket *sock,
 			goto clear_nonblock;
 		}
 
-		ret = -nsi_errno_to_mid(so_err);
+		ret = so_err;
 	}
 
 clear_nonblock:

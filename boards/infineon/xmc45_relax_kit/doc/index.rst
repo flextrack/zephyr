@@ -37,9 +37,6 @@ Here is an example for building the :zephyr:code-sample:`hello_world` sample app
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
-
 West Commands
 =============
 Here is an example for the :zephyr:code-sample:`hello_world` application.

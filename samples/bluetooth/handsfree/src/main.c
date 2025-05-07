@@ -19,103 +19,67 @@
 #include <zephyr/bluetooth/classic/hfp_hf.h>
 #include <zephyr/settings/settings.h>
 
-static void hf_connected(struct bt_conn *conn, struct bt_hfp_hf *hf)
+static void connected(struct bt_conn *conn)
 {
 	printk("HFP HF Connected!\n");
 }
 
-static void hf_disconnected(struct bt_hfp_hf *hf)
+static void disconnected(struct bt_conn *conn)
 {
 	printk("HFP HF Disconnected!\n");
 }
 
-static void hf_sco_connected(struct bt_hfp_hf *hf, struct bt_conn *sco_conn)
-{
-	printk("HF SCO connected\n");
-}
-
-static void hf_sco_disconnected(struct bt_conn *sco_conn, uint8_t reason)
-{
-	printk("HF SCO disconnected\n");
-}
-
-static void hf_service(struct bt_hfp_hf *hf, uint32_t value)
+static void service(struct bt_conn *conn, uint32_t value)
 {
 	printk("Service indicator value: %u\n", value);
 }
 
-static void hf_outgoing(struct bt_hfp_hf *hf, struct bt_hfp_hf_call *call)
+static void call(struct bt_conn *conn, uint32_t value)
 {
-	printk("HF call %p outgoing\n", call);
+	printk("Call indicator value: %u\n", value);
 }
 
-static void hf_remote_ringing(struct bt_hfp_hf_call *call)
+static void call_setup(struct bt_conn *conn, uint32_t value)
 {
-	printk("HF remote call %p start ringing\n", call);
+	printk("Call Setup indicator value: %u\n", value);
 }
 
-static void hf_incoming(struct bt_hfp_hf *hf, struct bt_hfp_hf_call *call)
+static void call_held(struct bt_conn *conn, uint32_t value)
 {
-	printk("HF call %p incoming\n", call);
+	printk("Call Held indicator value: %u\n", value);
 }
 
-static void hf_incoming_held(struct bt_hfp_hf_call *call)
-{
-	printk("HF call %p is held\n", call);
-}
-
-static void hf_accept(struct bt_hfp_hf_call *call)
-{
-	printk("HF call %p accepted\n", call);
-}
-
-static void hf_reject(struct bt_hfp_hf_call *call)
-{
-	printk("HF call %p rejected\n", call);
-}
-
-static void hf_terminate(struct bt_hfp_hf_call *call)
-{
-	printk("HF call %p terminated\n", call);
-}
-
-static void hf_signal(struct bt_hfp_hf *hf, uint32_t value)
+static void signal(struct bt_conn *conn, uint32_t value)
 {
 	printk("Signal indicator value: %u\n", value);
 }
 
-static void hf_roam(struct bt_hfp_hf *hf, uint32_t value)
+static void roam(struct bt_conn *conn, uint32_t value)
 {
 	printk("Roaming indicator value: %u\n", value);
 }
 
-static void hf_battery(struct bt_hfp_hf *hf, uint32_t value)
+static void battery(struct bt_conn *conn, uint32_t value)
 {
 	printk("Battery indicator value: %u\n", value);
 }
 
-static void hf_ring_indication(struct bt_hfp_hf_call *call)
+static void ring_cb(struct bt_conn *conn)
 {
-	printk("HF call %p ring\n", call);
+	printk("Incoming Call...\n");
 }
 
 static struct bt_hfp_hf_cb hf_cb = {
-	.connected = hf_connected,
-	.disconnected = hf_disconnected,
-	.sco_connected = hf_sco_connected,
-	.sco_disconnected = hf_sco_disconnected,
-	.service = hf_service,
-	.outgoing = hf_outgoing,
-	.remote_ringing = hf_remote_ringing,
-	.incoming = hf_incoming,
-	.incoming_held = hf_incoming_held,
-	.accept = hf_accept,
-	.reject = hf_reject,
-	.terminate = hf_terminate,
-	.signal = hf_signal,
-	.roam = hf_roam,
-	.battery = hf_battery,
-	.ring_indication = hf_ring_indication,
+	.connected = connected,
+	.disconnected = disconnected,
+	.service = service,
+	.call = call,
+	.call_setup = call_setup,
+	.call_held = call_held,
+	.signal = signal,
+	.roam = roam,
+	.battery = battery,
+	.ring_indication = ring_cb,
 };
 
 static void bt_ready(int err)

@@ -1,10 +1,9 @@
 /*
- * Copyright 2024-2025 NXP
+ * Copyright 2024 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/* Short MOSI and MISO externally using header J1 pins 2 and 4 */
 &flexcomm1 {
 	slow@0 {
 		compatible = "test-spi-loopback-slow";

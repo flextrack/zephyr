@@ -331,8 +331,8 @@ static bool is_eapol(struct net_pkt *pkt)
 
 enum ethernet_hw_caps nrf_wifi_if_caps_get(const struct device *dev)
 {
-	enum ethernet_hw_caps caps = (ETHERNET_LINK_10BASE |
-			ETHERNET_LINK_100BASE | ETHERNET_LINK_1000BASE);
+	enum ethernet_hw_caps caps = (ETHERNET_LINK_10BASE_T |
+			ETHERNET_LINK_100BASE_T | ETHERNET_LINK_1000BASE_T);
 
 #ifdef CONFIG_NRF70_TCP_IP_CHECKSUM_OFFLOAD
 	caps |= ETHERNET_HW_TX_CHKSUM_OFFLOAD |
@@ -358,7 +358,6 @@ int nrf_wifi_if_send(const struct device *dev,
 	struct nrf_wifi_sys_fmac_dev_ctx *sys_dev_ctx = NULL;
 	struct rpu_host_stats *host_stats = NULL;
 	void *nbuf = NULL;
-	bool locked = false;
 
 	if (!dev || !pkt) {
 		LOG_ERR("%s: vif_ctx_zep is NULL", __func__);
@@ -372,27 +371,24 @@ int nrf_wifi_if_send(const struct device *dev,
 		goto out;
 	}
 
-	/* Allocate packet before locking mutex (blocks until allocation success) */
-	nbuf = net_pkt_to_nbuf(pkt);
-
 	ret = k_mutex_lock(&vif_ctx_zep->vif_lock, K_FOREVER);
 	if (ret != 0) {
 		LOG_ERR("%s: Failed to lock vif_lock", __func__);
-		goto drop;
+		goto out;
 	}
-	locked = true;
 
 	rpu_ctx_zep = vif_ctx_zep->rpu_ctx_zep;
 	if (!rpu_ctx_zep || !rpu_ctx_zep->rpu_ctx) {
-		goto drop;
+		goto unlock;
 	}
 
 	sys_dev_ctx = wifi_dev_priv(rpu_ctx_zep->rpu_ctx);
 	host_stats = &sys_dev_ctx->host_stats;
-
-	if (nbuf == NULL) {
-		LOG_ERR("%s: allocation failed", __func__);
-		goto drop;
+	nbuf = net_pkt_to_nbuf(pkt);
+	if (!nbuf) {
+		LOG_DBG("Failed to allocate net_pkt");
+		host_stats->total_tx_drop_pkts++;
+		goto out;
 	}
 
 #ifdef CONFIG_NRF70_RAW_DATA_TX
@@ -419,16 +415,10 @@ int nrf_wifi_if_send(const struct device *dev,
 #endif /* CONFIG_NRF70_RAW_DATA_TX */
 	goto unlock;
 drop:
-	if (host_stats != NULL) {
-		host_stats->total_tx_drop_pkts++;
-	}
-	if (nbuf != NULL) {
-		nrf_wifi_osal_nbuf_free(nbuf);
-	}
+	host_stats->total_tx_drop_pkts++;
+	nrf_wifi_osal_nbuf_free(nbuf);
 unlock:
-	if (locked) {
-		k_mutex_unlock(&vif_ctx_zep->vif_lock);
-	}
+	k_mutex_unlock(&vif_ctx_zep->vif_lock);
 #else
 	ARG_UNUSED(dev);
 	ARG_UNUSED(pkt);
@@ -575,7 +565,6 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf_wifi_vif_ctx_zep *vif_ctx_
 		random_mac_addr,
 		WIFI_MAC_ADDR_LEN);
 #elif CONFIG_WIFI_OTP_MAC_ADDRESS
-#ifndef CONFIG_NRF71_ON_IPC
 	status = nrf_wifi_fmac_otp_mac_addr_get(fmac_dev_ctx,
 				vif_ctx_zep->vif_idx,
 				vif_ctx_zep->mac_addr.addr);
@@ -584,15 +573,6 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf_wifi_vif_ctx_zep *vif_ctx_
 			__func__);
 		goto unlock;
 	}
-#else
-	/* Set dummy MAC address */
-	vif_ctx_zep->mac_addr.addr[0] = 0x00;
-	vif_ctx_zep->mac_addr.addr[1] = 0x00;
-	vif_ctx_zep->mac_addr.addr[2] = 0x5E;
-	vif_ctx_zep->mac_addr.addr[3] = 0x00;
-	vif_ctx_zep->mac_addr.addr[4] = 0x10;
-	vif_ctx_zep->mac_addr.addr[5] = 0x00;
-#endif /* !CONFIG_NRF71_ON_IPC */
 #endif
 
 	if (!nrf_wifi_utils_is_mac_addr_valid(vif_ctx_zep->mac_addr.addr)) {
@@ -1021,11 +1001,6 @@ int nrf_wifi_if_get_config_zep(const struct device *dev,
 					 ETHERNET_CHECKSUM_SUPPORT_IPV6_ICMP |
 					 ETHERNET_CHECKSUM_SUPPORT_TCP |
 					 ETHERNET_CHECKSUM_SUPPORT_UDP;
-	}
-#endif
-#ifdef CONFIG_NRF_WIFI_ZERO_COPY_TX
-	if (type == ETHERNET_CONFIG_TYPE_EXTRA_TX_PKT_HEADROOM) {
-		config->extra_tx_pkt_headroom = NRF_WIFI_EXTRA_TX_HEADROOM;
 	}
 #endif
 	ret = 0;

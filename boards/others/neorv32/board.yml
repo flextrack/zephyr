@@ -4,6 +4,3 @@ board:
   vendor: others
   socs:
     - name: neorv32
-      variants:
-        - name: "minimalboot"
-        - name: "up5kdemo"

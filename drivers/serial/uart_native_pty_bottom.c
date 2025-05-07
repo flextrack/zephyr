@@ -32,13 +32,12 @@
  *
  * @param in_f   Input file descriptor
  * @param p_char Pointer to character.
- * @param len    Maximum number of characters to read.
  *
- * @retval >0 Number of characters actually read
+ * @retval 0 If a character arrived and was stored in p_char
  * @retval -1 If no character was available to read
  * @retval -2 if the stdin is disconnected
  */
-int np_uart_stdin_poll_in_bottom(int in_f, unsigned char *p_char, int len)
+int np_uart_stdin_poll_in_bottom(int in_f, unsigned char *p_char)
 {
 	if (feof(stdin)) {
 		/*
@@ -65,12 +64,12 @@ int np_uart_stdin_poll_in_bottom(int in_f, unsigned char *p_char, int len)
 		ERROR("%s: Error on select ()\n", __func__);
 	}
 
-	n = read(in_f, p_char, len);
+	n = read(in_f, p_char, 1);
 	if ((n == -1) || (n == 0)) {
 		return -1;
 	}
 
-	return n;
+	return 0;
 }
 
 /**

@@ -117,14 +117,14 @@ static const exc_trigger_func_t exc_trigger_func[] = {
 };
 
 /**
- * @brief Verify the kernel fatal error handling works correctly
+ * @brief Test the kernel fatal error handling works correctly
  * @details Manually trigger the crash with various ways and check
  * that the kernel is handling that properly or not. Also the crash reason
  * should match.
  *
- * @ingroup kernel_fatal_tests
+ * @ingroup kernel_common_tests
  */
-ZTEST(fatal_no_mt, test_fatal_no_mt)
+ZTEST(fatal_no_mt, test_fatal)
 {
 #ifdef VIA_TWISTER
 #define EXC_TRIGGER_FUNC_IDX VIA_TWISTER

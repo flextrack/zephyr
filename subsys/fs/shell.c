@@ -403,7 +403,7 @@ static int cmd_read(const struct shell *sh, size_t argc, char **argv)
 		}
 	}
 
-	ssize_t read = 0;
+	ssize_t read;
 	while (count > 0) {
 		uint8_t buf[16];
 		int i;

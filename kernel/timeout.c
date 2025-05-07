@@ -29,10 +29,10 @@ static struct k_spinlock timeout_lock;
 static int announce_remaining;
 
 #if defined(CONFIG_TIMER_READS_ITS_FREQUENCY_AT_RUNTIME)
-unsigned int z_clock_hw_cycles_per_sec = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
+int z_clock_hw_cycles_per_sec = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
 
 #ifdef CONFIG_USERSPACE
-static inline unsigned int z_vrfy_sys_clock_hw_cycles_per_sec_runtime_get(void)
+static inline int z_vrfy_sys_clock_hw_cycles_per_sec_runtime_get(void)
 {
 	return z_impl_sys_clock_hw_cycles_per_sec_runtime_get();
 }
@@ -84,9 +84,10 @@ static int32_t elapsed(void)
 	return announce_remaining == 0 ? sys_clock_elapsed() : 0U;
 }
 
-static int32_t next_timeout(int32_t ticks_elapsed)
+static int32_t next_timeout(void)
 {
 	struct _timeout *to = first();
+	int32_t ticks_elapsed = elapsed();
 	int32_t ret;
 
 	if ((to == NULL) ||
@@ -99,12 +100,11 @@ static int32_t next_timeout(int32_t ticks_elapsed)
 	return ret;
 }
 
-k_ticks_t z_add_timeout(struct _timeout *to, _timeout_func_t fn, k_timeout_t timeout)
+void z_add_timeout(struct _timeout *to, _timeout_func_t fn,
+		   k_timeout_t timeout)
 {
-	k_ticks_t ticks = 0;
-
 	if (K_TIMEOUT_EQ(timeout, K_FOREVER)) {
-		return 0;
+		return;
 	}
 
 #ifdef CONFIG_KERNEL_COHERENCE
@@ -116,19 +116,13 @@ k_ticks_t z_add_timeout(struct _timeout *to, _timeout_func_t fn, k_timeout_t tim
 
 	K_SPINLOCK(&timeout_lock) {
 		struct _timeout *t;
-		int32_t ticks_elapsed;
-		bool has_elapsed = false;
 
 		if (Z_IS_TIMEOUT_RELATIVE(timeout)) {
-			ticks_elapsed = elapsed();
-			has_elapsed = true;
-			to->dticks = timeout.ticks + 1 + ticks_elapsed;
-			ticks = curr_tick + to->dticks;
+			to->dticks = timeout.ticks + 1 + elapsed();
 		} else {
-			k_ticks_t dticks = Z_TICK_ABS(timeout.ticks) - curr_tick;
+			k_ticks_t ticks = Z_TICK_ABS(timeout.ticks) - curr_tick;
 
-			to->dticks = MAX(1, dticks);
-			ticks = timeout.ticks;
+			to->dticks = MAX(1, ticks);
 		}
 
 		for (t = first(); t != NULL; t = next(t)) {
@@ -145,17 +139,9 @@ k_ticks_t z_add_timeout(struct _timeout *to, _timeout_func_t fn, k_timeout_t tim
 		}
 
 		if (to == first() && announce_remaining == 0) {
-			if (!has_elapsed) {
-				/* In case of absolute timeout that is first to expire
-				 * elapsed need to be read from the system clock.
-				 */
-				ticks_elapsed = elapsed();
-			}
-			sys_clock_set_timeout(next_timeout(ticks_elapsed), false);
+			sys_clock_set_timeout(next_timeout(), false);
 		}
 	}
-
-	return ticks;
 }
 
 int z_abort_timeout(struct _timeout *to)
@@ -167,10 +153,9 @@ int z_abort_timeout(struct _timeout *to)
 			bool is_first = (to == first());
 
 			remove_timeout(to);
-			to->dticks = TIMEOUT_DTICKS_ABORTED;
 			ret = 0;
 			if (is_first) {
-				sys_clock_set_timeout(next_timeout(elapsed()), false);
+				sys_clock_set_timeout(next_timeout(), false);
 			}
 		}
 	}
@@ -225,7 +210,7 @@ int32_t z_get_next_timeout_expiry(void)
 	int32_t ret = (int32_t) K_TICKS_FOREVER;
 
 	K_SPINLOCK(&timeout_lock) {
-		ret = next_timeout(elapsed());
+		ret = next_timeout();
 	}
 	return ret;
 }
@@ -272,7 +257,7 @@ void sys_clock_announce(int32_t ticks)
 	curr_tick += announce_remaining;
 	announce_remaining = 0;
 
-	sys_clock_set_timeout(next_timeout(0), false);
+	sys_clock_set_timeout(next_timeout(), false);
 
 	k_spin_unlock(&timeout_lock, key);
 

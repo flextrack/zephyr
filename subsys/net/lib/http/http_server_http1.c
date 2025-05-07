@@ -678,7 +678,7 @@ static void check_user_request_headers(struct http_header_capture_ctx *ctx, cons
 				break;
 			}
 
-			memcpy(dest, header->name, header_len + 1);
+			strcpy(dest, header->name);
 
 			ctx->headers[ctx->count].name = dest;
 			ctx->cursor += (header_len + 1);
@@ -756,7 +756,7 @@ static void populate_user_request_header(struct http_header_capture_ctx *ctx, co
 	}
 
 	dest = &ctx->buffer[ctx->cursor];
-	memcpy(dest, buf, value_len + 1);
+	strcpy(dest, buf);
 	ctx->cursor += (value_len + 1);
 
 	ctx->headers[ctx->count].value = dest;

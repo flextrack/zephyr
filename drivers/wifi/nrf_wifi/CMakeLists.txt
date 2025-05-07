@@ -27,11 +27,9 @@ zephyr_library_sources_ifndef(CONFIG_NRF70_OFFLOADED_RAW_TX
   src/fmac_main.c
 )
 
-if(NOT CONFIG_NRF71_ON_IPC)
-  zephyr_library_sources_ifdef(CONFIG_NRF_WIFI_PATCHES_BUILTIN
-    src/fw_load.c
-  )
-endif()
+zephyr_library_sources_ifdef(CONFIG_NRF_WIFI_PATCHES_BUILTIN
+  src/fw_load.c
+)
 
 if(NOT CONFIG_NRF70_RADIO_TEST AND NOT CONFIG_NRF70_OFFLOADED_RAW_TX)
   zephyr_library_sources(
@@ -64,12 +62,15 @@ zephyr_library_sources_ifdef(CONFIG_NRF70_UTIL
   src/wifi_util.c
 )
 
-if(CONFIG_NRF70_UTIL OR CONFIG_NRF70_DEBUG_SHELL)
-  zephyr_library_sources(src/shell.c)
-endif()
-
-zephyr_library_sources_ifdef(CONFIG_NRF70_DEBUG_SHELL
-  src/debug_shell.c
+zephyr_compile_definitions_ifdef(CONFIG_NRF70_ON_QSPI
+# These are XIP related anomalies and aren't applicable for nRF7002 and cause
+# throughput issues.
+  -DNRF53_ERRATA_43_ENABLE_WORKAROUND=0
+  -DNRF52_ERRATA_215_ENABLE_WORKAROUND=0
+# nRF70 QSPI doesn't use 192MHz clock and most samples use 128MHz, this can cause anomaly 159
+# but as its rare and not seen in most cases, we can disable it.
+# Alternative is 128MHz CPU should be disabled that impacts Wi-Fi performance.
+  -DNRF53_ERRATA_159_ENABLE_WORKAROUND=0
 )
 
 zephyr_library_link_libraries(nrf70-buslib nrf-wifi-shim)

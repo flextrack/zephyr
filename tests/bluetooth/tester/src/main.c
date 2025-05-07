@@ -6,9 +6,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr/autoconf.h>
-#include <zephyr/logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/types.h>
+#include <zephyr/toolchain.h>
 
+#include <zephyr/logging/log.h>
 #define LOG_MODULE_NAME bttester_main
 LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_BTTESTER_LOG_LEVEL);
 

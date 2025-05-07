@@ -734,7 +734,7 @@ TEST_DATA_7 = [
     ),
     (
         True,
-        "dummy.test_id is not a Ztest, status:passed",
+        "not a ztest and no state for dummy.test_id",
         "START - test_testcase",
         [],
         {},
@@ -745,7 +745,7 @@ TEST_DATA_7 = [
     ),
     (
         False,
-        "dummy.test_id is not a Ztest, status:passed",
+        "not a ztest and no state for dummy.test_id",
         "START - test_testcase",
         [],
         {},
@@ -756,7 +756,7 @@ TEST_DATA_7 = [
     ),
     (
         True,
-        "dummy.test_id is not a Ztest, status:failed",
+        "not a ztest and no state for dummy.test_id",
         "START - test_testcase",
         [],
         {},

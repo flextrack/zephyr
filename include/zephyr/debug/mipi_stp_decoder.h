@@ -15,7 +15,7 @@ extern "C" {
 
 /**
  * @defgroup mipi_stp_decoder_apis STP Decoder API
- * @ingroup debug
+ * @ingroup os_services
  * @{
  */
 

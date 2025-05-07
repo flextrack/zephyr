@@ -6,14 +6,10 @@
 
 #include <zephyr/ztest.h>
 
-
 /**
- * @defgroup kernel_init_tests Kernel Initialization
+ * @brief Test delay during boot
+ * @defgroup kernel_init_tests Init
  * @ingroup all_tests
- * @{
- * @}
- *
- * @addtogroup kernel_init_tests
  * @{
  */
 
@@ -43,9 +39,9 @@ ZTEST(boot_delay, test_bootdelay)
 			(NSEC_PER_MSEC * CONFIG_BOOT_DELAY));
 }
 
+extern void *common_setup(void);
+ZTEST_SUITE(boot_delay, NULL, common_setup, NULL, NULL, NULL);
+
 /**
  * @}
  */
-
-extern void *common_setup(void);
-ZTEST_SUITE(boot_delay, NULL, common_setup, NULL, NULL, NULL);

@@ -7,10 +7,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stdint.h>
-
+#include <zephyr/sys/util.h>
 #include <zephyr/bluetooth/addr.h>
-#include <zephyr/sys/util_macro.h>
 
 /* MESH Service */
 /* commands */
@@ -1062,9 +1060,6 @@ struct btp_priv_node_id_set_cmd {
 } __packed;
 
 #define BTP_MESH_PROXY_PRIVATE_IDENTITY		0x72
-struct btp_proxy_priv_identity_cmd {
-	uint8_t enabled;
-} __packed;
 
 #define BTP_MESH_OD_PRIV_PROXY_GET		0x73
 struct btp_od_priv_proxy_get_cmd {

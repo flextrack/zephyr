@@ -42,7 +42,32 @@ More information about the board can be found at the
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The Zephyr mimx8mn_evk board configuration supports the following hardware
+features:
+
++-----------+------------+-------------------------------------+
+| Interface | Controller | Driver/Component                    |
++===========+============+=====================================+
+| GIC-v3    | on-chip    | interrupt controller                |
++-----------+------------+-------------------------------------+
+| ARM TIMER | on-chip    | system clock                        |
++-----------+------------+-------------------------------------+
+| CLOCK     | on-chip    | clock_control                       |
++-----------+------------+-------------------------------------+
+| PINMUX    | on-chip    | pinmux                              |
++-----------+------------+-------------------------------------+
+| RDC       | on-chip    | Resource Domain Controller          |
++-----------+------------+-------------------------------------+
+| UART      | on-chip    | serial port                         |
++-----------+------------+-------------------------------------+
+| GPT       | on-chip    | timer                               |
++-----------+------------+-------------------------------------+
+| ENET      | on-chip    | ethernet port                       |
++-----------+------------+-------------------------------------+
+| GPIO      | on-chip    | GPIO ports                          |
++-----------+------------+-------------------------------------+
+| I2C       | on-chip    | I2C bus                             |
++-----------+------------+-------------------------------------+
 
 Devices
 ========
@@ -59,8 +84,6 @@ CPU's UART4.
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 U-Boot "cpu" command is used to load and kick Zephyr to Cortex-A secondary Core, Currently
 it has been supported in latest U-Boot version by `patch serials`_.

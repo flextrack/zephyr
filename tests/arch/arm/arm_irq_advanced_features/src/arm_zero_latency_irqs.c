@@ -18,10 +18,6 @@ void arm_zero_latency_isr_handler(const void *args)
 	test_flag = 1;
 }
 
-/**
- * @brief Test ARM Zero latency Interrupt functionality.
- * @ingroup kernel_arch_interrupt_tests
- */
 ZTEST(arm_irq_advanced_features, test_arm_zero_latency_irqs)
 {
 
@@ -105,3 +101,7 @@ ZTEST(arm_irq_advanced_features, test_arm_zero_latency_irqs)
 
 	irq_unlock(key);
 }
+
+/**
+ * @}
+ */

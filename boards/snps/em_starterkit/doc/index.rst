@@ -108,8 +108,6 @@ copy the initialized data section to the data memory if CONFIG_XIP is used.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Required Hardware and Software
 ==============================
 

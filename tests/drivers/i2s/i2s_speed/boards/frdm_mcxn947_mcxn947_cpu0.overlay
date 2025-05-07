@@ -9,7 +9,3 @@
 		i2s-node1 = &sai0;
 	};
 };
-
-&sai0 {
-	mclk-output;
-};

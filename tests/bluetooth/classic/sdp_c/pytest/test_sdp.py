@@ -338,15 +338,6 @@ async def wait_for_shell_response(dut, message):
     return found, lines
 
 
-async def device_power_on(device) -> None:
-    while True:
-        try:
-            await device.power_on()
-            break
-        except Exception:
-            continue
-
-
 async def sdp_ssa_discover_no_record(hci_port, shell, dut, address) -> None:
     logger.info('<<< SDP Discovery ...')
     async with await open_transport_or_link(hci_port) as hci_transport:
@@ -362,7 +353,7 @@ async def sdp_ssa_discover_no_record(hci_port, shell, dut, address) -> None:
         # device.sdp_service_records = SDP_SERVICE_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -395,7 +386,7 @@ async def sdp_ssa_discover_one_record(hci_port, shell, dut, address) -> None:
         device.sdp_service_records = SDP_SERVICE_ONE_RECORD
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -452,7 +443,7 @@ async def sdp_ssa_discover_two_records(hci_port, shell, dut, address) -> None:
         device.sdp_service_records = SDP_SERVICE_TWO_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -522,7 +513,7 @@ async def sdp_ssa_discover_multiple_records(hci_port, shell, dut, address) -> No
         device.sdp_service_records = SDP_SERVICE_MULTIPLE_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -556,7 +547,7 @@ async def sdp_ss_discover_no_record(hci_port, shell, dut, address) -> None:
         # device.sdp_service_records = SDP_SERVICE_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -589,7 +580,7 @@ async def sdp_ss_discover_one_record(hci_port, shell, dut, address) -> None:
         device.sdp_service_records = SDP_SERVICE_ONE_RECORD
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -632,7 +623,7 @@ async def sdp_ss_discover_two_records(hci_port, shell, dut, address) -> None:
         device.sdp_service_records = SDP_SERVICE_TWO_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -675,7 +666,7 @@ async def sdp_ss_discover_multiple_records(hci_port, shell, dut, address) -> Non
         device.sdp_service_records = SDP_SERVICE_MULTIPLE_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -719,7 +710,7 @@ async def sdp_sa_discover_no_record(hci_port, shell, dut, address) -> None:
         # device.sdp_service_records = SDP_SERVICE_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -752,7 +743,7 @@ async def sdp_sa_discover_one_record(hci_port, shell, dut, address) -> None:
         device.sdp_service_records = SDP_SERVICE_ONE_RECORD
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -806,7 +797,7 @@ async def sdp_sa_discover_two_records(hci_port, shell, dut, address) -> None:
         device.sdp_service_records = SDP_SERVICE_TWO_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]
@@ -869,7 +860,7 @@ async def sdp_sa_discover_multiple_records(hci_port, shell, dut, address) -> Non
         device.sdp_service_records = SDP_SERVICE_MULTIPLE_RECORDS
         with open(f"bumble_hci_{sys._getframe().f_code.co_name}.log", "wb") as snoop_file:
             device.host.snooper = BtSnooper(snoop_file)
-            await device_power_on(device)
+            await device.power_on()
             await device.send_command(HCI_Write_Page_Timeout_Command(page_timeout=0xFFFF))
 
             target_address = address.split(" ")[0]

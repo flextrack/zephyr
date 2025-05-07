@@ -16,8 +16,7 @@ tests:
       - mps2/an383
       - mps2/an386
       - mps2/an500
-      - neorv32/neorv32/minimalboot
-      - neorv32/neorv32/up5kdemo
+      - neorv32
   drivers.gpio.1pin.aw9523b:
     tags:
       - drivers

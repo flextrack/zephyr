@@ -38,7 +38,43 @@ https://wiki.analog.com/resources/eval/user-guides/eval-adin1110ebz-user-guide
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The ADI adi_eval_adin1110ebz board configuration supports the
+following hardware features:
+
++--------------+------------+-------------------------------------+
+| Interface    | Controller | Driver/Component                    |
++==============+============+=====================================+
+| NVIC         | on-chip    | nested vector interrupt controller  |
++--------------+------------+-------------------------------------+
+| UART         | on-chip    | serial port-polling;                |
+|              |            | serial port-interrupt               |
++--------------+------------+-------------------------------------+
+| PINMUX       | on-chip    | pinmux                              |
++--------------+------------+-------------------------------------+
+| GPIO         | on-chip    | gpio                                |
++--------------+------------+-------------------------------------+
+| I2C          | on-chip    | i2c                                 |
++--------------+------------+-------------------------------------+
+| SPI          | on-chip    | spi                                 |
++--------------+------------+-------------------------------------+
+| PWM          | on-chip    | pwm                                 |
++--------------+------------+-------------------------------------+
+| WATCHDOG     | on-chip    | independent watchdog                |
++--------------+------------+-------------------------------------+
+| ADIN1110     | spi        | adin1110 10BASE-T1L mac/phy         |
++--------------+------------+-------------------------------------+
+| FT232        | uart       | usb-uart                            |
++--------------+------------+-------------------------------------+
+| ADT7422      | i2c        | temperature sensor                  |
++--------------+------------+-------------------------------------+
+| ISS66WVE4M16 | fmc        | 8MB PSRAM                           |
++--------------+------------+-------------------------------------+
+
+
+The default configuration can be found in the defconfig file:
+
+	:zephyr_file:`boards/adi/eval_adin1110ebz/adi_eval_adin1110ebz_defconfig`
+
 
 Connections and IOs
 ===================
@@ -82,8 +118,6 @@ to a FT232, so available through Micro USB connector. Default settings are 11520
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 Flashing
 ========

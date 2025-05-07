@@ -1728,15 +1728,14 @@ static uint32_t init_ack_timeout(const struct coap_transmission_parameters *para
 	const uint32_t max_ack = params->ack_timeout * random_percent / 100U;
 	const uint32_t min_ack = params->ack_timeout;
 
-	if (max_ack > min_ack) {
-		/* Randomly generated initial ACK timeout
-		 * ACK_TIMEOUT <= INIT_ACK_TIMEOUT <= ACK_TIMEOUT * ACK_RANDOM_FACTOR
-		 * Ref: https://tools.ietf.org/html/rfc7252#section-4.8
-		 */
-		return min_ack + (sys_rand32_get() % (max_ack - min_ack + 1));
-	}
-#endif /* defined(CONFIG_COAP_RANDOMIZE_ACK_TIMEOUT) */
+	/* Randomly generated initial ACK timeout
+	 * ACK_TIMEOUT < INIT_ACK_TIMEOUT < ACK_TIMEOUT * ACK_RANDOM_FACTOR
+	 * Ref: https://tools.ietf.org/html/rfc7252#section-4.8
+	 */
+	return min_ack + (sys_rand32_get() % (max_ack - min_ack));
+#else
 	return params->ack_timeout;
+#endif /* defined(CONFIG_COAP_RANDOMIZE_ACK_TIMEOUT) */
 }
 
 bool coap_pending_cycle(struct coap_pending *pending)

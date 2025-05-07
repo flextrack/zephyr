@@ -30,7 +30,35 @@ For more information about the KL25Z SoC and FRDM-KL25Z board:
 Supported Features
 ==================
 
-.. zephyr:board-supported-hw::
+The frdm_kl25z board configuration supports the following hardware features:
+
++-----------+------------+-------------------------------------+
+| Interface | Controller | Driver/Component                    |
++===========+============+=====================================+
+| NVIC      | on-chip    | nested vector interrupt controller  |
++-----------+------------+-------------------------------------+
+| SYSTICK   | on-chip    | systick                             |
++-----------+------------+-------------------------------------+
+| PINMUX    | on-chip    | pinmux                              |
++-----------+------------+-------------------------------------+
+| GPIO      | on-chip    | gpio                                |
++-----------+------------+-------------------------------------+
+| UART      | on-chip    | serial port-polling;                |
+|           |            | serial port-interrupt               |
++-----------+------------+-------------------------------------+
+| I2C       | on-chip    | i2c                                 |
++-----------+------------+-------------------------------------+
+| ADC       | on-chip    | adc                                 |
++-----------+------------+-------------------------------------+
+| FLASH     | on-chip    | soc flash                           |
++-----------+------------+-------------------------------------+
+| USB       | on-chip    | USB device                          |
++-----------+------------+-------------------------------------+
+
+The default configuration can be found in
+:zephyr_file:`boards/nxp/frdm_kl25z/frdm_kl25z_defconfig`
+
+Other hardware features are not currently supported by the port.
 
 Connections and IOs
 ===================
@@ -79,8 +107,6 @@ Only USB device function is supported in Zephyr at the moment.
 
 Programming and Debugging
 *************************
-
-.. zephyr:board-supported-runners::
 
 Build and flash applications as usual (see :ref:`build_an_application` and
 :ref:`application_run` for more details).

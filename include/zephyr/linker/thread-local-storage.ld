@@ -1,5 +1,4 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-/* Please keep in sync with cmake/linker_script/common/thread-local-storage.cmake */
 
 #ifdef CONFIG_THREAD_LOCAL_STORAGE
 

@@ -4,12 +4,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 #undef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
-
-#include "posix_clock.h"
-
 #include <errno.h>
 
 #include <zephyr/kernel.h>
@@ -194,7 +190,7 @@ int timer_create(clockid_t clockid, struct sigevent *evp, timer_t *timerid)
 	goto out;
 
 free_timer:
-	k_mem_slab_free(&posix_timer_slab, (void *)timer);
+	k_mem_slab_free(&posix_timer_slab, (void *)&timer);
 
 out:
 	return ret;
@@ -245,8 +241,11 @@ int timer_settime(timer_t timerid, int flags, const struct itimerspec *value,
 	struct timer_obj *timer = (struct timer_obj *) timerid;
 	uint32_t duration, current;
 
-	if ((timer == NULL) || !timespec_is_valid(&value->it_interval) ||
-	    !timespec_is_valid(&value->it_value)) {
+	if (timer == NULL ||
+	    value->it_interval.tv_nsec < 0 ||
+	    value->it_interval.tv_nsec >= NSEC_PER_SEC ||
+	    value->it_value.tv_nsec < 0 ||
+	    value->it_value.tv_nsec >= NSEC_PER_SEC) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -267,12 +266,12 @@ int timer_settime(timer_t timerid, int flags, const struct itimerspec *value,
 	}
 
 	/* Calculate timer period */
-	timer->reload = ts_to_ms(&value->it_interval);
+	timer->reload = _ts_to_ms(&value->it_interval);
 	timer->interval.tv_sec = value->it_interval.tv_sec;
 	timer->interval.tv_nsec = value->it_interval.tv_nsec;
 
 	/* Calculate timer duration */
-	duration = ts_to_ms(&(value->it_value));
+	duration = _ts_to_ms(&(value->it_value));
 	if ((flags & TIMER_ABSTIME) != 0) {
 		current = k_timer_remaining_get(&timer->ztimer);
 

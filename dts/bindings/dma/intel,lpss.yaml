@@ -1,7 +1,7 @@
 # Copyright (c) 2019 Intel Corporation. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-description: LPSS DMA Controller
+description: LPSS DMA Controller node
 
 compatible: "intel,lpss"
 

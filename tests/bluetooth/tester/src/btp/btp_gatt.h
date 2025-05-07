@@ -7,8 +7,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stdint.h>
-
+#include <zephyr/sys/util.h>
 #include <zephyr/bluetooth/addr.h>
 
 /* GATT Service */

@@ -23,7 +23,6 @@ tests:
       - nrf54h20dk/nrf54h20/cpuapp
       - nrf54l15dk/nrf54l15/cpuapp
       - nrf5340dk/nrf5340/cpuapp
-      - ophelia4ev/nrf54l15/cpuapp
   drivers.comparator.gpio_loopback.nrf_lpcomp:
     extra_args:
       - SNIPPET="gpio_loopback_nrf_lpcomp"
@@ -31,4 +30,3 @@ tests:
       - nrf54h20dk/nrf54h20/cpuapp
       - nrf54l15dk/nrf54l15/cpuapp
       - nrf5340dk/nrf5340/cpuapp
-      - ophelia4ev/nrf54l15/cpuapp

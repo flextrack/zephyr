@@ -36,12 +36,7 @@ static K_THREAD_STACK_ARRAY_DEFINE(stacks, NUM_TIMEOUTS, STACKSIZE);
 static struct k_thread threads[NUM_TIMEOUTS];
 
 /**
- * @defgroup kernel_timeout_tests Timeout Order
- * @ingroup all_tests
- * @{
- * @}
- *
- * @addtogroup kernel_timeout_tests
+ * @addtogroup kernel_common_tests
  * @{
  */
 
@@ -93,9 +88,10 @@ ZTEST(common_1cpu, test_timeout_order)
 	}
 }
 
-/**
- * @}
- */
 extern void *common_setup(void);
 ZTEST_SUITE(common_1cpu, NULL, common_setup,
 		ztest_simple_1cpu_before, ztest_simple_1cpu_after, NULL);
+
+/**
+ * @}
+ */

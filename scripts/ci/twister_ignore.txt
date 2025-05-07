@@ -25,7 +25,6 @@
 .github/workflows/issues-report-config.json
 .github/workflows/backport_issue_check.yml
 MAINTAINERS.yml
-CODEOWNERS
 LICENSE
 Makefile
 doc/*

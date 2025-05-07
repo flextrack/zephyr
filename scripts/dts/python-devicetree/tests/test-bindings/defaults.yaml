@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
-title: Test binding
-
 description: Property default value test
 
 compatible: "defaults"

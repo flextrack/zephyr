@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2010-2014 Wind River Systems, Inc.
- * Copyright (c) 2025 Siemens AG
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -62,37 +61,6 @@
 #endif
 
 /*
- * General directive for assembly code, to align the following symbol, in bytes.
- *
- * Example:
- *
- *    ALIGN(4)
- *    test_symbol:
- *
- * 'test_symbol' will get aligned to 4 bytes.
- */
-
-#if defined(_ASMLANGUAGE) && !defined(_LINKER)
-
-  #if defined(CONFIG_X86) || defined(CONFIG_ARM) || defined(CONFIG_ARM64) || \
-	defined(CONFIG_NIOS2) || defined(CONFIG_RISCV) || \
-	defined(CONFIG_XTENSA) || defined(CONFIG_MIPS) || \
-	defined(CONFIG_ARCH_POSIX) || defined(CONFIG_RX)
-    #define   ALIGN(x)    .balign   x
-  #elif defined(CONFIG_ARC)
-    /* .align assembler directive is supported by all ARC toolchains and it is
-     * implemented in the same way across ARC toolchains.
-     */
-    #define   ALIGN(x)    .align    x
-  #elif defined(CONFIG_SPARC)
-    #define   ALIGN(x)    .align    x
-  #else
-    #error Architecture unsupported
-  #endif
-
-#endif /* defined(_ASMLANGUAGE) && !defined(_LINKER) */
-
-/*
  * If the project is being built for speed (i.e. not for minimum size) then
  * align functions and branches in executable sections to improve performance.
  */
@@ -119,7 +87,7 @@
     #define PERFOPT_ALIGN .align  4
 
   #elif defined(CONFIG_NIOS2) || defined(CONFIG_RISCV) || \
-	  defined(CONFIG_XTENSA) || defined(CONFIG_MIPS) || defined(CONFIG_RX)
+	  defined(CONFIG_XTENSA) || defined(CONFIG_MIPS)
     #define PERFOPT_ALIGN .balign 4
 
   #elif defined(CONFIG_ARCH_POSIX)

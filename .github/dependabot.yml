@@ -1,5 +1,4 @@
 version: 2
-enable-beta-ecosystems: true
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -10,17 +9,5 @@ updates:
     labels: []
     groups:
       actions-deps:
-        patterns:
-          - "*"
-
-  - package-ecosystem: "uv"
-    directory: "/doc"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "ci: doc: "
-    labels: []
-    groups:
-      doc-deps:
         patterns:
           - "*"

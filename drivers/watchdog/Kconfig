@@ -97,10 +97,6 @@ source "drivers/watchdog/Kconfig.cc32xx"
 
 source "drivers/watchdog/Kconfig.cc13xx_cc26xx"
 
-source "drivers/watchdog/Kconfig.cc23x0"
-
-source "drivers/watchdog/Kconfig.it51xxx"
-
 source "drivers/watchdog/Kconfig.it8xxx2"
 
 source "drivers/watchdog/Kconfig.rpi_pico"
@@ -152,7 +148,5 @@ source "drivers/watchdog/Kconfig.litex"
 source "drivers/watchdog/Kconfig.rts5912"
 
 source "drivers/watchdog/Kconfig.renesas_ra"
-
-source "drivers/watchdog/Kconfig.wch"
 
 endif # WATCHDOG

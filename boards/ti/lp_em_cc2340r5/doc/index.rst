@@ -81,8 +81,6 @@ aligns with the LaunchPad standard.
 Programming and Debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 The LP_EM_CC2340R5 requires an external debug probe such as the LP-XDS110 or
 LP-XDS110ET.
 

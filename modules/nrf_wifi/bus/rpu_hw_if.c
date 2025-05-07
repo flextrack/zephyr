@@ -239,8 +239,8 @@ static int rpu_pwron(void)
 		gpio_pin_set_dt(&bucken_spec, 0);
 		return ret;
 	}
-	/* Settling time for IOVDD */
-	k_msleep(DT_PROP(NRF7002_NODE, iovdd_power_up_delay_ms));
+	/* Settling time for iovdd nRF7002 DK/EK - switch (TCK106AG): ~600us */
+	k_msleep(1);
 
 	if ((bucken_spec.port == iovdd_ctrl_spec.port) &&
 	    (bucken_spec.pin == iovdd_ctrl_spec.pin)) {

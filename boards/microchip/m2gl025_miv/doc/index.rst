@@ -11,8 +11,6 @@ More information can be found on
 Programming and debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Building
 ========
 

@@ -136,8 +136,7 @@ static void *usb_test_enable(void)
 	err = usbd_add_descriptor(&test_usbd, &test_sn);
 	zassert_equal(err, 0, "Failed to initialize descriptor (%d)", err);
 
-	if (USBD_SUPPORTS_HIGH_SPEED &&
-	    usbd_caps_speed(&test_usbd) == USBD_SPEED_HS) {
+	if (usbd_caps_speed(&test_usbd) == USBD_SPEED_HS) {
 		err = usbd_add_configuration(&test_usbd, USBD_SPEED_HS, &test_hs_config);
 		zassert_equal(err, 0, "Failed to add configuration (%d)");
 	}
@@ -145,8 +144,7 @@ static void *usb_test_enable(void)
 	err = usbd_add_configuration(&test_usbd, USBD_SPEED_FS, &test_fs_config);
 	zassert_equal(err, 0, "Failed to add configuration (%d)");
 
-	if (USBD_SUPPORTS_HIGH_SPEED &&
-	    usbd_caps_speed(&test_usbd) == USBD_SPEED_HS) {
+	if (usbd_caps_speed(&test_usbd) == USBD_SPEED_HS) {
 		err = usbd_register_all_classes(&test_usbd, USBD_SPEED_HS, 1, NULL);
 		zassert_equal(err, 0, "Failed to unregister all instances(%d)");
 

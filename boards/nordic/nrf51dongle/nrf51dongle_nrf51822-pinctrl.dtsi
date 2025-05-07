@@ -22,4 +22,5 @@
 			low-power-enable;
 		};
 	};
+
 };

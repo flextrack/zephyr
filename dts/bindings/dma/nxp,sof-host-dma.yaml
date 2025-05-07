@@ -1,7 +1,7 @@
 # Copyright 2023 NXP
 # SPDX-License-Identifier: Apache-2.0
 
-description: NXP SOF host DMA
+description: NXP SOF host DMA node
 
 compatible: "nxp,sof-host-dma"
 

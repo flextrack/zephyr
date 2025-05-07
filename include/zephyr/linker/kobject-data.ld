@@ -4,11 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/* Please keep in sync with cmake/linker_script/common/kobject-data.cmake */
-
 #ifdef CONFIG_USERSPACE
 
-	PLACE_SYMBOL_HERE(z_kobject_data_begin);
+	z_kobject_data_begin = .;
 	SECTION_DATA_PROLOGUE(kobject_data,,)
 	{
 
@@ -51,14 +49,14 @@
 #ifdef KOBJECT_DATA_ALIGN
 	. = ALIGN(KOBJECT_DATA_ALIGN);
 
-	PLACE_SYMBOL_HERE(_kobject_data_area_start);
+	_kobject_data_area_start = .;
 #endif
 
 	*(".kobject_data.data*")
 	*(".kobject_data.sdata*")
 
 #ifdef KOBJECT_DATA_ALIGN
-	PLACE_SYMBOL_HERE(_kobject_data_area_end);
+	_kobject_data_area_end = .;
 	_kobject_data_area_used = _kobject_data_area_end - _kobject_data_area_start;
 
 	ASSERT(_kobject_data_area_used <= KOBJECT_DATA_SZ,

@@ -7,11 +7,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stddef.h>
-#include <stdint.h>
-
+#include <zephyr/types.h>
+#include <zephyr/sys/util.h>
 #include <zephyr/bluetooth/addr.h>
-#include <zephyr/sys/util_macro.h>
 #include <sys/types.h>
 
 static inline void tester_set_bit(uint8_t *addr, unsigned int bit)
@@ -54,8 +52,6 @@ struct btp_handler {
 void tester_register_command_handlers(uint8_t service,
 				      const struct btp_handler *handlers,
 				      size_t num);
-
-uint16_t tester_supported_commands(uint8_t service, uint8_t *cmds);
 
 uint8_t tester_init_gatt(void);
 uint8_t tester_unregister_gatt(void);

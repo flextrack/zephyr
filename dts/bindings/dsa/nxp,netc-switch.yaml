@@ -5,4 +5,21 @@ description: NXP NETC ethernet switch
 
 compatible: "nxp,netc-switch"
 
-include: [dsa.yaml]
+child-binding:
+  description: Properties of slave port
+
+  include:
+    - name: pinctrl-device.yaml
+    - name: ethernet-controller.yaml
+      property-allowlist:
+        - reg
+        - local-mac-address
+        - phy-handle
+        - phy-connection-type
+
+  properties:
+    ethernet:
+      type: phandle
+      description:
+        A phandle to a valid Ethernet device node. This host
+        device is what the switch port is connected to.

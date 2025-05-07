@@ -107,14 +107,20 @@ static void update_coil_charge(const struct device *dev)
 	}
 }
 
-static void update_remaining_steps(const struct device *dev)
+static void update_remaining_steps(struct gpio_stepper_data *data)
 {
-	struct gpio_stepper_data *data = dev->data;
-
 	if (data->step_count > 0) {
 		data->step_count--;
+		(void)k_work_reschedule(&data->stepper_dwork, K_NSEC(data->delay_in_ns));
 	} else if (data->step_count < 0) {
 		data->step_count++;
+		(void)k_work_reschedule(&data->stepper_dwork, K_NSEC(data->delay_in_ns));
+	} else {
+		if (!data->callback) {
+			LOG_WRN_ONCE("No callback set");
+			return;
+		}
+		data->callback(data->dev, STEPPER_EVENT_STEPS_COMPLETED, data->event_cb_user_data);
 	}
 }
 
@@ -135,18 +141,11 @@ static void position_mode_task(const struct device *dev)
 {
 	struct gpio_stepper_data *data = dev->data;
 
-	update_remaining_steps(dev);
-	(void)stepper_motor_set_coil_charge(dev);
-	update_coil_charge(dev);
 	if (data->step_count) {
-		(void)k_work_reschedule(&data->stepper_dwork, K_NSEC(data->delay_in_ns));
-	} else {
-		if (data->callback) {
-			data->callback(data->dev, STEPPER_EVENT_STEPS_COMPLETED,
-				       data->event_cb_user_data);
-		}
-		(void)k_work_cancel_delayable(&data->stepper_dwork);
+		(void)stepper_motor_set_coil_charge(dev);
+		update_coil_charge(dev);
 	}
+	update_remaining_steps(dev->data);
 }
 
 static void velocity_mode_task(const struct device *dev)
@@ -224,12 +223,23 @@ static int gpio_stepper_get_actual_position(const struct device *dev, int32_t *p
 static int gpio_stepper_move_to(const struct device *dev, int32_t micro_steps)
 {
 	struct gpio_stepper_data *data = dev->data;
-	int32_t steps_to_move;
 
-	K_SPINLOCK(&data->lock) {
-		steps_to_move = micro_steps - data->actual_position;
+	if (!data->is_enabled) {
+		LOG_ERR("Stepper motor is not enabled");
+		return -ECANCELED;
 	}
-	return gpio_stepper_move_by(dev, steps_to_move);
+
+	if (data->delay_in_ns == 0) {
+		LOG_ERR("Step interval not set or invalid step interval set");
+		return -EINVAL;
+	}
+	K_SPINLOCK(&data->lock) {
+		data->run_mode = STEPPER_RUN_MODE_POSITION;
+		data->step_count = micro_steps - data->actual_position;
+		update_direction_from_step_count(dev);
+		(void)k_work_reschedule(&data->stepper_dwork, K_NO_WAIT);
+	}
+	return 0;
 }
 
 static int gpio_stepper_is_moving(const struct device *dev, bool *is_moving)
@@ -315,35 +325,23 @@ static int gpio_stepper_set_event_callback(const struct device *dev,
 	return 0;
 }
 
-static int gpio_stepper_enable(const struct device *dev)
+static int gpio_stepper_enable(const struct device *dev, bool enable)
 {
 	struct gpio_stepper_data *data = dev->data;
 	int err;
 
-	if (data->is_enabled) {
-		LOG_WRN("Stepper motor is already enabled");
+	if (data->is_enabled == enable) {
 		return 0;
 	}
 
 	K_SPINLOCK(&data->lock) {
-		err = energize_coils(dev, true);
-		if (err == 0) {
-			data->is_enabled = true;
-		}
-	}
-	return err;
-}
+		data->is_enabled = enable;
 
-static int gpio_stepper_disable(const struct device *dev)
-{
-	struct gpio_stepper_data *data = dev->data;
-	int err;
-
-	K_SPINLOCK(&data->lock) {
-		(void)k_work_cancel_delayable(&data->stepper_dwork);
-		err = energize_coils(dev, false);
-		if (err == 0) {
-			data->is_enabled = false;
+		if (enable) {
+			err = energize_coils(dev, true);
+		} else {
+			(void)k_work_cancel_delayable(&data->stepper_dwork);
+			err = energize_coils(dev, false);
 		}
 	}
 	return err;
@@ -381,7 +379,6 @@ static int gpio_stepper_init(const struct device *dev)
 
 static DEVICE_API(stepper, gpio_stepper_api) = {
 	.enable = gpio_stepper_enable,
-	.disable = gpio_stepper_disable,
 	.set_micro_step_res = gpio_stepper_set_micro_step_res,
 	.get_micro_step_res = gpio_stepper_get_micro_step_res,
 	.set_reference_position = gpio_stepper_set_reference_position,

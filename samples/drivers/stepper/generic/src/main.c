@@ -79,7 +79,7 @@ int main(void)
 		k_sem_take(&stepper_generic_sem, K_FOREVER);
 		switch (atomic_get(&stepper_mode)) {
 		case STEPPER_MODE_ENABLE:
-			stepper_enable(stepper);
+			stepper_enable(stepper, true);
 			LOG_INF("mode: enable\n");
 			break;
 		case STEPPER_MODE_STOP:
@@ -105,7 +105,7 @@ int main(void)
 			LOG_INF("mode: ping pong absolute\n");
 			break;
 		case STEPPER_MODE_DISABLE:
-			stepper_disable(stepper);
+			stepper_enable(stepper, false);
 			LOG_INF("mode: disable\n");
 			break;
 		}

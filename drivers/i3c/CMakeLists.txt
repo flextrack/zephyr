@@ -5,14 +5,17 @@
 zephyr_syscall_header(${ZEPHYR_BASE}/include/zephyr/drivers/i3c.h)
 
 zephyr_library()
-zephyr_library_sources_ifdef(CONFIG_I3C_CONTROLLER i3c_ccc.c)
-zephyr_library_sources_ifdef(CONFIG_I3C_CONTROLLER i3c_common.c)
 
-if(DEFINED CONFIG_I3C_NUM_OF_DESC_MEM_SLABS AND CONFIG_I3C_NUM_OF_DESC_MEM_SLABS GREATER 0)
+zephyr_library_sources(
+  i3c_ccc.c
+  i3c_common.c
+)
+
+if(CONFIG_I3C_NUM_OF_DESC_MEM_SLABS GREATER 0)
   zephyr_library_sources(i3c_mem_slab.c)
 endif()
 
-if(DEFINED CONFIG_I3C_I2C_NUM_OF_DESC_MEM_SLABS AND CONFIG_I3C_I2C_NUM_OF_DESC_MEM_SLABS GREATER 0)
+if(CONFIG_I3C_I2C_NUM_OF_DESC_MEM_SLABS GREATER 0)
   zephyr_library_sources(i3c_i2c_mem_slab.c)
 endif()
 
@@ -54,16 +57,6 @@ zephyr_library_sources_ifdef(
 zephyr_library_sources_ifdef(
   CONFIG_I3C_DW
   i3c_dw.c
-)
-
-zephyr_library_sources_ifdef(
-  CONFIG_I3CM_IT51XXX
-  i3cm_it51xxx.c
-)
-
-zephyr_library_sources_ifdef(
-  CONFIG_I3CS_IT51XXX
-  i3cs_it51xxx.c
 )
 
 zephyr_library_sources_ifdef(

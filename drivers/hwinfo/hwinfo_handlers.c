@@ -15,7 +15,7 @@ ssize_t z_vrfy_hwinfo_get_device_id(uint8_t *buffer, size_t length)
 }
 #include <zephyr/syscalls/hwinfo_get_device_id_mrsh.c>
 
-int z_vrfy_hwinfo_get_device_eui64(uint8_t *buffer)
+ssize_t z_vrfy_hwinfo_get_device_eui64(uint8_t *buffer)
 {
 	K_OOPS(K_SYSCALL_MEMORY_WRITE(buffer, 8));
 

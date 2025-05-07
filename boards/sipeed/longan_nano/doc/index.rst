@@ -48,8 +48,6 @@ Connect to TX0 (PA9) and RX0 (PA10).
 Programming and debugging
 *************************
 
-.. zephyr:board-supported-runners::
-
 Building & Flashing
 ===================
 

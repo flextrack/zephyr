@@ -11,6 +11,3 @@ if (CONFIG_SOF AND CONFIG_BOARD_IMX95_EVK_MIMX9596_M7_DDR)
     DEPENDS ${CMAKE_BINARY_DIR}/zephyr/${KERNEL_ELF_NAME}
   )
 endif()
-
-zephyr_library()
-zephyr_library_sources(board.c)
