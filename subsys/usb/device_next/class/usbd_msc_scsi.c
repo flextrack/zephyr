@@ -771,12 +771,15 @@ static size_t store_write_10(struct scsi_ctx *ctx, const uint8_t *buf, size_t le
 	bool error = false;
 
 #if USB_MSC_READ_ONLY
-	// return illegal_request(ctx, 0);
+	ctx->status = CHECK_CONDITION;
+	ctx->sense_key = DATA_PROTECT;
+	ctx->asc = 0x2700;
 	return 0;
 #endif
 
 	remaining_sectors = ctx->remaining_data / ctx->sector_size;
 	sectors = MIN(length, ctx->remaining_data) / ctx->sector_size;
+
 	if (disk_access_write(ctx->disk, buf, ctx->lba, sectors) != 0) {
 		/* Flush cache and terminate transfer */
 		sectors = 0;
